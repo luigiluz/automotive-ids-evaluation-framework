@@ -50,7 +50,7 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
             np.savez(f"{paths_dictionary['output_path']}/y_Wsize_{self._window_size}_Cols_{self._number_of_columns}_Wslide_{self._window_slide}", y)
 
 
-    def __read_raw_packets(pcap_filepath):
+    def __read_raw_packets(self, pcap_filepath):
         raw_packets = rdpcap(pcap_filepath)
 
         raw_packets_list = []
@@ -62,7 +62,7 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         return raw_packets_list
 
 
-    def __convert_raw_packets(raw_packets_list):
+    def __convert_raw_packets(self, raw_packets_list):
         converted_packets_list = []
 
         for raw_packet in raw_packets_list:
@@ -72,7 +72,7 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         return np.array(converted_packets_list, dtype='uint8')
 
 
-    def __is_array_in_list_of_arrays(array_to_check, list_np_arrays):
+    def __is_array_in_list_of_arrays(self, array_to_check, list_np_arrays):
         # Reference:
         # https://stackoverflow.com/questions/23979146/check-if-numpy-array-is-in-list-of-numpy-arrays
         is_in_list = np.any(np.all(array_to_check == list_np_arrays, axis=1))
@@ -94,20 +94,20 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         return labels_list
 
 
-    def __select_packets_bytes(packets_list, first_byte=0, last_byte=58):
+    def __select_packets_bytes(self, packets_list, first_byte=0, last_byte=58):
         selected_packets = packets_list[:, first_byte:last_byte]
 
         return np.array(selected_packets, dtype='uint8')
 
 
-    def __calculate_difference_module(selected_packets):
+    def __calculate_difference_module(self, selected_packets):
         difference_array = np.diff(selected_packets, axis=0)
         difference_module = np.mod(difference_array, 256)
 
         return difference_module
 
 
-    def __split_byte_into_nibbles(byte):
+    def __split_byte_into_nibbles(self, byte):
         high_nibble = (byte >> 4) & 0xf
         low_nibble = (byte) & 0xf
 
