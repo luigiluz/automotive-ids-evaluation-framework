@@ -4,16 +4,18 @@ import numpy as np
 import typing
 from scapy.all import *
 
+import abstract_feature_generator
+
 DEFAULT_WINDOW_SIZE = 44
 DEFAULT_NUMBER_OF_BYTES = 58
 DEFAULT_WINDOW_SLIDE = 1
 AVTP_PACKETS_LENGHT = 438
 
-class CNNIDSFeatureGenerator:
-    def __init__(self, window_size = DEFAULT_WINDOW_SIZE, number_of_bytes = DEFAULT_NUMBER_OF_BYTES, window_slide = DEFAULT_WINDOW_SLIDE):
-        self._window_size = window_size
-        self._number_of_bytes = number_of_bytes
-        self._window_slide = window_slide
+class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator):
+    def __init__(self, config: typing.Dict):
+        self._window_size = config.get('window_size', DEFAULT_WINDOW_SIZE)
+        self._number_of_bytes = config.get('number_of_bytes', DEFAULT_NUMBER_OF_BYTES)
+        self._window_slide = config.get('window_slide', DEFAULT_WINDOW_SLIDE)
         self._number_of_columns = self._number_of_bytes * 2
 
 
