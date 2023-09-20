@@ -3,7 +3,7 @@ import argparse
 import json
 
 AVAILABLE_FEATURE_GENERATORS = {
-    "CNNIDSFeatureGenerator": feature_generator.CNNIDSFeatureGenerator
+    "CNNIDSFeatureGenerator": feature_generator.cnn_ids_feature_generator.CNNIDSFeatureGenerator
 }
 
 def main():
