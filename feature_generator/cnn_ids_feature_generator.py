@@ -4,7 +4,7 @@ import numpy as np
 import typing
 from scapy.all import *
 
-import abstract_feature_generator
+from . import abstract_feature_generator
 
 DEFAULT_WINDOW_SIZE = 44
 DEFAULT_NUMBER_OF_BYTES = 58
