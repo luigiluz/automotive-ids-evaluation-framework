@@ -11,3 +11,7 @@ class AbstractFeatureGenerator(abc.ABC):
     @abc.abstractmethod
     def generate_features(self, paths_dictionary: typing.Dict):
         pass
+
+    @abc.abstractmethod
+    def load_features(self, paths_dictionary: typing.Dict):
+        pass
