@@ -50,6 +50,17 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
             np.savez(f"{paths_dictionary['output_path']}/y_Wsize_{self._window_size}_Cols_{self._number_of_columns}_Wslide_{self._window_slide}", y)
 
 
+    def load_features(self, paths_dictionary: typing.Dict):
+        X = np.load(paths_dictionary['X_path'])
+        X = X.f.arr_0
+        X = X.reshape((X.shape[0], -1, self._window_size, self._number_of_columns))
+
+        y = np.load(paths_dictionary['y_path'])
+        y = y.f.arr_0
+
+        return [[X[i], y[i]] for i in range(X.shape[0])]
+
+
     def __read_raw_packets(self, pcap_filepath):
         raw_packets = rdpcap(pcap_filepath)
 
