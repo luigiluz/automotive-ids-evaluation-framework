@@ -1,0 +1,10 @@
+{
+    "framework": "pytorch",
+    "model": "CNNIDS",
+    "model_name": "CNNIDS",
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "num_epochs": 30,
+    "metrics_output_path":"/content/drive/MyDrive/AutomotiveIDSEvaluationFramework/Metrics",
+    "models_output_path":"/content/drive/MyDrive/AutomotiveIDSEvaluationFramework/Models"
+}
