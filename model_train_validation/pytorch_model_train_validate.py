@@ -158,9 +158,10 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         skf = StratifiedKFold(n_splits=5, random_state=1, shuffle=True)
 
         # Get item from train data
+        X = [item[0] for item in train_data]
         y = [item[1] for item in train_data]
 
-        for fold, (train_idx, test_idx) in enumerate(skf.split(y)):
+        for fold, (train_idx, test_idx) in enumerate(skf.split(X, y)):
             print('------------fold no---------{}----------------------'.format(fold))
 
             train_subsampler = torch.utils.data.SubsetRandomSampler(train_idx)
