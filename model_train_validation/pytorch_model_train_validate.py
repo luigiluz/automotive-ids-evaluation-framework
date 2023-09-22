@@ -130,17 +130,17 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
                 y_pred = np.concatenate((y_pred, y_pred_batch))
                 y_true = np.concatenate((y_true, y_true_batch))
 
-                # Calculate metrics
-                acc = accuracy_score(y_true, y_pred)
-                prec = precision_score(y_true, y_pred)
-                recall = recall_score(y_true, y_pred)
-                f1 = f1_score(y_true, y_pred)
-                roc_auc = roc_auc_score(y_true, y_pred_prob)
+            # Calculate metrics
+            acc = accuracy_score(y_true, y_pred)
+            prec = precision_score(y_true, y_pred)
+            recall = recall_score(y_true, y_pred)
+            f1 = f1_score(y_true, y_pred)
+            roc_auc = roc_auc_score(y_true, y_pred_prob)
 
-                # Append metrics on list
-                self._evaluation_metrics.append([fold, acc, prec, recall, f1, roc_auc])
-                metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc"])
-                metrics_df.to_csv(f"{self._metrics_output_path}/{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
+            # Append metrics on list
+            self._evaluation_metrics.append([fold, acc, prec, recall, f1, roc_auc])
+            metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc"])
+            metrics_df.to_csv(f"{self._metrics_output_path}/{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
 
 
     def execute(self, train_data):
