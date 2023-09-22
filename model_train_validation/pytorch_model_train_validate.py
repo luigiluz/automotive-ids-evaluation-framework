@@ -59,7 +59,7 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
             m.reset_parameters()
 
 
-    def __train_model(self, model, criterion, device, trainloader, fold):
+    def __train_model(self, criterion, device, trainloader, fold):
         self._model.train()
 
         self._model = self._model.to(device)
@@ -74,7 +74,7 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
                 optimizer.zero_grad()
 
                 # forward + backward + optimize
-                output = model(data)
+                output = self._model(data)
                 loss = criterion(output, target)
                 loss.backward()
 
