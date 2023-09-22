@@ -6,7 +6,7 @@ from models import conv_net_ids
 from model_train_validation import pytorch_model_train_validate
 
 AVAILABLE_FEATURE_GENERATORS = {
-    "ConvNetIDS": cnn_ids_feature_generator.CNNIDSFeatureGenerator
+    "CNNIDSFeatureGenerator": cnn_ids_feature_generator.CNNIDSFeatureGenerator
 }
 
 AVAILABLE_IDS = {
