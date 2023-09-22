@@ -8,7 +8,7 @@
 	"paths": {
 	  "injected_only_frame_path": "/content/drive/MyDrive/AutomotiveIDSEvaluationFramework/Datasets/AVTP Intrusion Dataset/Raw/single-MPEG-frame.pcap",
 	  "injected_data_paths" : ["/content/drive/MyDrive/AutomotiveIDSEvaluationFramework/Datasets/AVTP Intrusion Dataset/Raw/indoors_01_injected.pcap", "/content/drive/MyDrive/AutomotiveIDSEvaluationFramework/Datasets/AVTP Intrusion Dataset/Raw/indoors_02_injected.pcap"],
-	  "output_path": "/content/drive/MyDrive/AutomotiveIDSEvaluationFramework/Datasets/AVTP Intrusion Dataset/Processed/"
+	  "output_path": "/content/drive/MyDrive/AutomotiveIDSEvaluationFramework/Datasets/AVTP Intrusion Dataset/Processed"
 	},
 	"load_paths": {
 		"X_path": "/content/drive/MyDrive/AutomotiveIDSEvaluationFramework/Datasets/AVTP Intrusion Dataset/Processed/X_Wsize_44_Cols_116_Wslide_1.npz",
