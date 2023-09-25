@@ -1,0 +1,10 @@
+{
+    "framework": "pytorch",
+    "model": "CNNIDS",
+    "model_name": "CNNIDS",
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "num_epochs": 1,
+    "metrics_output_path":"/home/lfml/workspace/metrics",
+    "models_output_path":"/home/lfml/workspace/models"
+}
