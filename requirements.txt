@@ -3,16 +3,4 @@ numpy==1.23.5
 scapy==2.5.0
 scikit-learn==1.2.2
 torch @ https://download.pytorch.org/whl/cu118/torch-2.0.1%2Bcu118-cp310-cp310-linux_x86_64.whl#sha256=a7a49d459bf4862f64f7bc1a68beccf8881c2fa9f3e0569608e16ba6f85ebf7b
-torchaudio @ https://download.pytorch.org/whl/cu118/torchaudio-2.0.2%2Bcu118-cp310-cp310-linux_x86_64.whl#sha256=26692645ea061a005c57ec581a2d0425210ac6ba9f923edf11cc9b0ef3a111e9
-torchdata==0.6.1
-torchsummary==1.5.1
-torchtext==0.15.2
 torchvision @ https://download.pytorch.org/whl/cu118/torchvision-0.15.2%2Bcu118-cp310-cp310-linux_x86_64.whl#sha256=19ca4ab5d6179bbe53cff79df1a855ee6533c2861ddc7389f68349d8b9f8302a
-tensorflow==2.13.0
-tensorflow-datasets==4.9.2
-tensorflow-estimator==2.13.0
-tensorflow-gcs-config==2.13.0
-tensorflow-hub==0.14.0
-tensorflow-io-gcs-filesystem==0.33.0
-tensorflow-metadata==1.14.0
-tensorflow-probability==0.20.1
