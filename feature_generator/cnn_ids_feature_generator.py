@@ -6,6 +6,8 @@ from scapy.all import *
 
 from . import abstract_feature_generator
 
+from sklearn.preprocessing import OneHotEncoder
+
 DEFAULT_WINDOW_SIZE = 44
 DEFAULT_NUMBER_OF_BYTES = 58
 DEFAULT_WINDOW_SLIDE = 1
@@ -17,6 +19,8 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         self._number_of_bytes = config.get('number_of_bytes', DEFAULT_NUMBER_OF_BYTES)
         self._window_slide = config.get('window_slide', DEFAULT_WINDOW_SLIDE)
         self._number_of_columns = self._number_of_bytes * 2
+
+        self._multiclass = config.get('multiclass', False)
 
 
     def generate_features(self, paths_dictionary: typing.Dict):
@@ -57,6 +61,11 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
 
         y = np.load(paths_dictionary['y_path'])
         y = y.f.arr_0
+
+        if (self._multiclass):
+            y = y.reshape(-1, 1)
+            ohe = OneHotEncoder(handle_unknown='ignore', sparse_output=False).fit(y)
+            y = ohe.transform(y)
 
         return [[X[i], y[i]] for i in range(X.shape[0])]
 

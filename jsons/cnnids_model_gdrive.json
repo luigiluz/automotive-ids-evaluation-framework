@@ -2,6 +2,7 @@
     "framework": "pytorch",
     "model": "CNNIDS",
     "model_name": "CNNIDS",
+    "criterion": "binary-cross-entropy",
     "batch_size": 64,
     "learning_rate": 0.001,
     "num_epochs": 30,
