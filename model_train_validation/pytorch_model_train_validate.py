@@ -7,15 +7,17 @@ import numpy as np
 
 from torch import nn
 
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import precision_score
-from sklearn.metrics import recall_score
-from sklearn.metrics import f1_score
-from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import StratifiedKFold
 
 from . import abstract_model_train_validate
 
+from torchmetrics.classification import (
+    BinaryAccuracy,
+    BinaryF1Score,
+    BinaryPrecision,
+    BinaryRecall,
+    BinaryAUROC
+)
 
 class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTrainValidate):
     def __init__(self, model, model_config_dict: typing.Dict):
@@ -65,11 +67,12 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         self._model = self._model.to(device)
         optimizer = torch.optim.Adam(self._model.parameters(), lr=self._learning_rate)
 
+        accuracy_metric = BinaryAccuracy().to(device)
+
         for epoch in range(self._num_epochs):
             for batch_idx, (data, target) in enumerate(trainloader):
                 # get current input and ouputs
-                data, target = data.float().to(device), target.reshape(-1, 1).float().to(device)
-
+                data, target = data.float(), target.reshape(-1, 1).float()
                 # zero the parameter gradients
                 optimizer.zero_grad()
 
@@ -81,14 +84,8 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
                 ## update model params
                 optimizer.step()
 
-                # referencia para calculo da acuracia:
-                # https://medium.com/analytics-vidhya/pytorch-for-deep-learning-binary-classification-logistic-regression-382abd97fb43
-                ## calculate accuracy
-                output = output.cpu()
-                target = target.cpu()
-                output = output.reshape(-1).detach().numpy().round()
-
-                acc = accuracy_score(target, output)
+                output = output.detach().round()
+                acc = accuracy_metric(output, target)
 
                 ## metrics logs
                 if batch_idx % 1000 == 0:
@@ -108,42 +105,43 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
     def __validate_model(self, criterion, device, testloader, fold):
         self._model.eval()
         test_loss = 0
-        y_true = np.array([])
-        y_pred = np.array([])
-        y_pred_prob = np.array([])
+
+        accuracy_metric = BinaryAccuracy().to(device)
+        f1_score_metric = BinaryF1Score().to(device)
+        auc_roc_metric = BinaryAUROC().to(device)
+        precision_score = BinaryPrecision().to(device)
+        recall_score = BinaryRecall().to(device)
 
         with torch.no_grad():
             for data, target in testloader:
                 # traz os dados pro dispositivo
-                data, target = data.float().to(device), target.reshape(-1, 1).float().to(device)
+                data, target = data.float(), target.reshape(-1, 1).float()
                 output = self._model(data)
                 test_loss += criterion(output, target).item()  # sum up batch loss
 
-                # referencia para salvar as metricas
-                # https://medium.com/analytics-vidhya/apply-any-metrics-in-pytorch-16e281e06699
-                y_pred_prob_batch = output.detach().cpu().numpy().reshape(-1)
-                y_pred_batch = y_pred_prob_batch.round()
-                y_true_batch = target.detach().cpu().numpy().reshape(-1)
-
-                # salva os outputs numa lista pra poder utilizar posteriormente
-                y_pred_prob = np.concatenate((y_pred_prob, y_pred_prob_batch))
-                y_pred = np.concatenate((y_pred, y_pred_batch))
-                y_true = np.concatenate((y_true, y_true_batch))
+                accuracy_metric.update(output.detach(), target)
+                f1_score_metric.update(output.detach(), target)
+                auc_roc_metric.update(output.detach(), target)
+                precision_score.update(output.detach(), target)
+                recall_score.update(output.detach(), target)
 
             # Calculate metrics
-            acc = accuracy_score(y_true, y_pred)
-            prec = precision_score(y_true, y_pred)
-            recall = recall_score(y_true, y_pred)
-            f1 = f1_score(y_true, y_pred)
-            roc_auc = roc_auc_score(y_true, y_pred_prob)
+            acc = accuracy_metric.compute().cpu().numpy()
+            f1 = f1_score_metric.compute().cpu().numpy()
+            roc_auc = auc_roc_metric.compute().cpu().numpy()
+            prec = precision_score.compute().cpu().numpy()
+            recall = recall_score.compute().cpu().numpy()
 
             # Append metrics on list
             self._evaluation_metrics.append([fold, acc, prec, recall, f1, roc_auc])
             metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc"])
             metrics_df.to_csv(f"{self._metrics_output_path}/{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
 
-
     def execute(self, train_data):
+        def collate_gpu(batch):
+            x, t = torch.utils.data.dataloader.default_collate(batch)
+            return x.to(device="cuda:0"), t.to(device="cuda:0")
+
         # Reset all seed to ensure reproducibility
         self.__seed_all(0)
         g = torch.Generator()
@@ -172,13 +170,15 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
                         batch_size=self._batch_size,
                         sampler=train_subsampler,
                         generator=g,
-                        worker_init_fn=self.__seed_worker)
+                        worker_init_fn=self.__seed_worker,
+                        collate_fn=collate_gpu)
             testloader = torch.utils.data.DataLoader(
                         train_data,
                         batch_size=self._batch_size,
                         sampler=test_subsampler,
                         generator=g,
-                        worker_init_fn=self.__seed_worker)
+                        worker_init_fn=self.__seed_worker,
+                        collate_fn=collate_gpu)
 
             self._model.apply(self.__reset_weights)
 
