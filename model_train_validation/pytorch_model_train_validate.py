@@ -27,6 +27,7 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         self._learning_rate = model_config_dict['learning_rate']
         self._batch_size = model_config_dict['batch_size']
         self._num_epochs = model_config_dict['num_epochs']
+        self._criterion = model_config_dict['criterion']
 
         self._evaluation_metrics = []
 
@@ -72,7 +73,10 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         for epoch in range(self._num_epochs):
             for batch_idx, (data, target) in enumerate(trainloader):
                 # get current input and ouputs
-                data, target = data.float(), target.reshape(-1, 1).float()
+                # TODO: O reshape de target precisa ser condicional
+                # TODO: Se tiver mais de uma dimensão, não precisa fazer reshape
+                # data, target = data.float(), target.reshape(-1, 1).float()
+                data, target = data.float(), target.float()
                 # zero the parameter gradients
                 optimizer.zero_grad()
 
@@ -114,8 +118,10 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
 
         with torch.no_grad():
             for data, target in testloader:
-                # traz os dados pro dispositivo
-                data, target = data.float(), target.reshape(-1, 1).float()
+                # TODO: O reshape de target precisa ser condicional
+                # TODO: Se tiver mais de uma dimensão, não precisa fazer reshape
+                # data, target = data.float(), target.reshape(-1, 1).float()
+                data, target = data.float(), target.float()
                 output = self._model(data)
                 test_loss += criterion(output, target).item()  # sum up batch loss
 
@@ -151,7 +157,13 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # Get this criterion from configuration parameter
-        criterion = nn.BCELoss()
+        criterion = None
+        if (self._criterion == 'binary-cross-entropy'):
+            criterion = nn.BCELoss()
+        elif (self._criterion == 'categorical-cross-entropy'):
+            criterion = nn.CrossEntropyLoss()
+        else:
+            raise KeyError(f"Selected criterion : {self._criterion} is NOT available!")
 
         skf = StratifiedKFold(n_splits=5, random_state=1, shuffle=True)
 
@@ -159,7 +171,7 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         X = [item[0] for item in train_data]
         y = [item[1] for item in train_data]
 
-        for fold, (train_idx, test_idx) in enumerate(skf.split(X, y)):
+        for fold, (train_idx, test_idx) in enumerate(skf.split(X, np.array(y).argmax(1))):
             print('------------fold no---------{}----------------------'.format(fold))
 
             train_subsampler = torch.utils.data.SubsetRandomSampler(train_idx)
