@@ -6,6 +6,7 @@
     "batch_size": 64,
     "learning_rate": 0.001,
     "num_epochs": 30,
+    "early_stopping_patience": 5,
     "metrics_output_path":"/content/drive/MyDrive/AutomotiveIDSEvaluationFramework/Metrics",
     "models_output_path":"/content/drive/MyDrive/AutomotiveIDSEvaluationFramework/Models"
 }
