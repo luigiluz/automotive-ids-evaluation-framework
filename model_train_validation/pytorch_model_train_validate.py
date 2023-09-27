@@ -34,6 +34,10 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         self._metrics_output_path = model_config_dict['metrics_output_path']
         self._models_output_path = model_config_dict['models_output_path']
 
+        self._early_stopping_patience = model_config_dict['early_stopping_patience']
+        self._best_val_loss = float("inf")
+        self._epochs_without_improvement = 0
+
     def __seed_all(self, seed):
         # Reference
         # https://discuss.pytorch.org/t/reproducibility-with-all-the-bells-and-whistles/81097
@@ -106,9 +110,9 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         torch.save(self._model.state_dict(), f"{self._models_output_path}/pytorch_model_{self._model_name}_{fold}")
 
 
-    def __validate_model(self, criterion, device, testloader, fold):
+    def __validate_model(self, criterion, device, testloader, fold, epoch):
         self._model.eval()
-        test_loss = 0
+        val_loss = 0
 
         accuracy_metric = BinaryAccuracy().to(device)
         f1_score_metric = BinaryF1Score().to(device)
@@ -123,7 +127,7 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
                 # data, target = data.float(), target.reshape(-1, 1).float()
                 data, target = data.float(), target.float()
                 output = self._model(data)
-                test_loss += criterion(output, target).item()  # sum up batch loss
+                val_loss += criterion(output, target).item()  # sum up batch loss
 
                 accuracy_metric.update(output.detach(), target)
                 f1_score_metric.update(output.detach(), target)
@@ -139,9 +143,22 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
             recall = recall_score.compute().cpu().numpy()
 
             # Append metrics on list
-            self._evaluation_metrics.append([fold, acc, prec, recall, f1, roc_auc])
-            metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc"])
-            metrics_df.to_csv(f"{self._metrics_output_path}/{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
+            self._evaluation_metrics.append([fold, epoch, acc, prec, recall, f1, roc_auc])
+            metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "epoch", "acc", "prec", "recall", "f1", "roc_auc"])
+            metrics_df.to_csv(f"{self._metrics_output_path}/validation_{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
+
+            # Early stopping update
+            val_loss = val_loss / len(testloader)
+            if val_loss < self._best_val_loss:
+                self._best_val_loss = val_loss
+                self._epochs_without_improvement = 0
+            else:
+                self._epochs_without_improvement = self._epochs_without_improvement + 1
+
+            # Early stopping condition
+            if self._epochs_without_improvement >= self._early_stopping_patience:
+                print(f"Early stopping! Validation loss hasn't improved for {self._early_stopping_patience} epochs")
+                break
 
     def execute(self, train_data):
         def collate_gpu(batch):
