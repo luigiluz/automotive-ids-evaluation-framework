@@ -80,11 +80,10 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         accuracy_metric = BinaryAccuracy().to(device)
 
         for batch_idx, (data, target) in enumerate(trainloader):
-            # get current input and ouputs
-            # TODO: O reshape de target precisa ser condicional
-            # TODO: Se tiver mais de uma dimensão, não precisa fazer reshape
-            # data, target = data.float(), target.reshape(-1, 1).float()
-            data, target = data.float(), target.float()
+            data = data.float()
+            if len(target.shape) == 1:
+                target = target.reshape(-1, 1)
+            target = target.float()
             # zero the parameter gradients
             optimizer.zero_grad()
 
@@ -120,10 +119,11 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
 
         with torch.no_grad():
             for data, target in testloader:
-                # TODO: O reshape de target precisa ser condicional
-                # TODO: Se tiver mais de uma dimensão, não precisa fazer reshape
-                # data, target = data.float(), target.reshape(-1, 1).float()
-                data, target = data.float(), target.float()
+                data = data.float()
+                if len(target.shape) == 1:
+                    target = target.reshape(-1, 1)
+                target = target.float()
+
                 output = self._model(data)
                 val_loss += criterion(output, target).item()  # sum up batch loss
 
