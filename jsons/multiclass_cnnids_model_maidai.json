@@ -5,7 +5,8 @@
     "criterion": "categorical-cross-entropy",
     "batch_size": 64,
     "learning_rate": 0.001,
-    "num_epochs": 1,
+    "num_epochs": 2,
+    "early_stopping_patience": 5,
     "metrics_output_path":"/home/lfml/workspace/metrics",
     "models_output_path":"/home/lfml/workspace/models"
 }

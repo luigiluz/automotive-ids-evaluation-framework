@@ -66,7 +66,12 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
             m.reset_parameters()
 
 
-    def __train_model(self, criterion, device, trainloader, fold):
+    def __save_model_state_dict(self, fold):
+        self._model.eval()
+        torch.save(self._model.state_dict(), f"{self._models_output_path}/pytorch_model_{self._model_name}_{fold}")
+
+
+    def __train_model(self, criterion, device, trainloader, fold, epoch):
         self._model.train()
 
         self._model = self._model.to(device)
@@ -74,44 +79,37 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
 
         accuracy_metric = BinaryAccuracy().to(device)
 
-        for epoch in range(self._num_epochs):
-            for batch_idx, (data, target) in enumerate(trainloader):
-                # get current input and ouputs
-                # TODO: O reshape de target precisa ser condicional
-                # TODO: Se tiver mais de uma dimensão, não precisa fazer reshape
-                # data, target = data.float(), target.reshape(-1, 1).float()
-                data, target = data.float(), target.float()
-                # zero the parameter gradients
-                optimizer.zero_grad()
+        for batch_idx, (data, target) in enumerate(trainloader):
+            # get current input and ouputs
+            # TODO: O reshape de target precisa ser condicional
+            # TODO: Se tiver mais de uma dimensão, não precisa fazer reshape
+            # data, target = data.float(), target.reshape(-1, 1).float()
+            data, target = data.float(), target.float()
+            # zero the parameter gradients
+            optimizer.zero_grad()
 
-                # forward + backward + optimize
-                output = self._model(data)
-                loss = criterion(output, target)
-                loss.backward()
+            # forward + backward + optimize
+            output = self._model(data)
+            loss = criterion(output, target)
+            loss.backward()
 
-                ## update model params
-                optimizer.step()
+            ## update model params
+            optimizer.step()
 
-                output = output.detach().round()
-                acc = accuracy_metric(output, target)
+            output = output.detach().round()
+            acc = accuracy_metric(output, target)
 
-                ## metrics logs
-                if batch_idx % 1000 == 0:
-                    # accuracy = 100 * correct / len(trainloader)
-                    print('Train Fold: {} \t Epoch: {} \t[{}/{} ({:.0f}%)]\tLoss: {:.6f} \tAcc: {:.6f}'.format(
-                    fold,epoch, batch_idx * len(data), len(trainloader.dataset),
-                    100. * batch_idx / len(trainloader), loss.item(), acc))
+            ## metrics logs
+            if batch_idx % 1000 == 0:
+                # accuracy = 100 * correct / len(trainloader)
+                print('Train Fold: {} \t Epoch: {} \t[{}/{} ({:.0f}%)]\tLoss: {:.6f} \tAcc: {:.6f}'.format(
+                fold,epoch, batch_idx * len(data), len(trainloader.dataset),
+                100. * batch_idx / len(trainloader), loss.item(), acc))
 
-        # Referencia para salvar os modelos
-        # https://pytorch.org/tutorials/beginner/saving_loading_models.html
+
+    def __validate_model(self, criterion, device, testloader, fold, epoch) -> int:
         self._model.eval()
-
-        # Descomentar isso aqui caso queira salvar o modelo
-        torch.save(self._model.state_dict(), f"{self._models_output_path}/pytorch_model_{self._model_name}_{fold}")
-
-
-    def __validate_model(self, criterion, device, testloader, fold, epoch):
-        self._model.eval()
+        ret = 0
         val_loss = 0
 
         accuracy_metric = BinaryAccuracy().to(device)
@@ -157,8 +155,9 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
 
             # Early stopping condition
             if self._epochs_without_improvement >= self._early_stopping_patience:
-                print(f"Early stopping! Validation loss hasn't improved for {self._early_stopping_patience} epochs")
-                break
+                ret = -1
+
+            return ret
 
     def execute(self, train_data):
         def collate_gpu(batch):
@@ -211,6 +210,13 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
 
             self._model.apply(self.__reset_weights)
 
-            self.__train_model(criterion, device, trainloader, fold)
+            for epoch in range(self._num_epochs):
+                self.__train_model(criterion, device, trainloader, fold, epoch)
+                ret = self.__validate_model(criterion, device, testloader, fold, epoch)
+                if (ret < 0):
+                    print(f"Early stopping! Validation loss hasn't improved for {self._early_stopping_patience} epochs")
+                    break
 
-            self.__validate_model(criterion, device, testloader, fold)
+            # Save model
+            self.__save_model_state_dict(fold)
+
