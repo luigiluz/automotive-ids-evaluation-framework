@@ -30,6 +30,7 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         self._criterion = model_config_dict['criterion']
 
         self._evaluation_metrics = []
+        self._train_validation_losses = []
 
         self._metrics_output_path = model_config_dict['metrics_output_path']
         self._models_output_path = model_config_dict['models_output_path']
@@ -71,8 +72,9 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         torch.save(self._model.state_dict(), f"{self._models_output_path}/pytorch_model_{self._model_name}_{fold}")
 
 
-    def __train_model(self, criterion, device, trainloader, fold, epoch):
+    def __train_model(self, criterion, device, trainloader, fold, epoch) -> int:
         self._model.train()
+        train_loss = 0
 
         self._model = self._model.to(device)
         optimizer = torch.optim.Adam(self._model.parameters(), lr=self._learning_rate)
@@ -91,6 +93,7 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
             output = self._model(data)
             loss = criterion(output, target)
             loss.backward()
+            train_loss += loss.item()
 
             ## update model params
             optimizer.step()
@@ -105,8 +108,12 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
                 fold,epoch, batch_idx * len(data), len(trainloader.dataset),
                 100. * batch_idx / len(trainloader), loss.item(), acc))
 
+        train_loss = train_loss / len(trainloader)
 
-    def __validate_model(self, criterion, device, testloader, fold, epoch) -> int:
+        return train_loss
+
+
+    def __validate_model(self, criterion, device, testloader, fold, epoch) -> typing.Tuple[int, float]:
         self._model.eval()
         ret = 0
         val_loss = 0
@@ -142,8 +149,6 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
 
             # Append metrics on list
             self._evaluation_metrics.append([fold, epoch, acc, prec, recall, f1, roc_auc])
-            metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "epoch", "acc", "prec", "recall", "f1", "roc_auc"])
-            metrics_df.to_csv(f"{self._metrics_output_path}/validation_{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
 
             # Early stopping update
             val_loss = val_loss / len(testloader)
@@ -157,7 +162,8 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
             if self._epochs_without_improvement >= self._early_stopping_patience:
                 ret = -1
 
-            return ret
+            return ret, val_loss
+
 
     def execute(self, train_data):
         def collate_gpu(batch):
@@ -211,12 +217,20 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
             self._model.apply(self.__reset_weights)
 
             for epoch in range(self._num_epochs):
-                self.__train_model(criterion, device, trainloader, fold, epoch)
-                ret = self.__validate_model(criterion, device, testloader, fold, epoch)
+                train_loss = self.__train_model(criterion, device, trainloader, fold, epoch)
+                ret, val_loss = self.__validate_model(criterion, device, testloader, fold, epoch)
                 if (ret < 0):
                     print(f"Early stopping! Validation loss hasn't improved for {self._early_stopping_patience} epochs")
                     break
 
+                self._train_validation_losses.append([fold, epoch, train_loss, val_loss])
+
             # Save model
             self.__save_model_state_dict(fold)
 
+            # Export metrics
+            metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "epoch", "acc", "prec", "recall", "f1", "roc_auc"])
+            metrics_df.to_csv(f"{self._metrics_output_path}/val_metrics_{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
+
+            train_val_loss_df = pd.DataFrame(self._train_validation_losses, columns=["fold", "epoch", "train_loss", "val_loss"])
+            train_val_loss_df.to_csv(f"{self._metrics_output_path}/train_val_losses_{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
