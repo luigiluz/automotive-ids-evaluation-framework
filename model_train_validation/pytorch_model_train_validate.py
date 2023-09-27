@@ -1,6 +1,8 @@
+import os
 import torch
 import random
 import typing
+import datetime
 
 import pandas as pd
 import numpy as np
@@ -32,8 +34,17 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         self._evaluation_metrics = []
         self._train_validation_losses = []
 
-        self._metrics_output_path = model_config_dict['metrics_output_path']
-        self._models_output_path = model_config_dict['models_output_path']
+        self._run_id = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+
+        self._metrics_output_path = f"{model_config_dict['metrics_output_path']}/{self._run_id}"
+        if not os.path.exists(self._metrics_output_path):
+            os.makedirs(self._metrics_output_path)
+            print("Metrics output directory created successfully")
+
+        self._models_output_path = f"{model_config_dict['models_output_path']}/{self._run_id}"
+        if not os.path.exists(self._models_output_path):
+            os.makedirs(self._models_output_path)
+            print("Models output directory created successfully")
 
         self._early_stopping_patience = model_config_dict['early_stopping_patience']
         self._best_val_loss = float("inf")
