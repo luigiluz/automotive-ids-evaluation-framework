@@ -32,6 +32,8 @@ def main():
         raise KeyError(f"Selected feature generator: {feature_generator_name} is NOT available!")
 
     selected_feature_generator = AVAILABLE_FEATURE_GENERATORS[feature_generator_name](feature_generator_config)
+    print(f"> Selected feature generator: {feature_generator_name}")
+    print("> Generating features...")
     selected_feature_generator.generate_features(feature_generator_paths)
 
     print("Feature generator successfully executed!")
