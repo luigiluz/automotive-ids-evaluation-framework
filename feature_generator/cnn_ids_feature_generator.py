@@ -5,6 +5,7 @@ import typing
 from scapy.all import *
 
 from . import abstract_feature_generator
+from . import labeling_schemas
 
 from sklearn.preprocessing import OneHotEncoder
 
@@ -12,6 +13,13 @@ DEFAULT_WINDOW_SIZE = 44
 DEFAULT_NUMBER_OF_BYTES = 58
 DEFAULT_WINDOW_SLIDE = 1
 AVTP_PACKETS_LENGHT = 438
+DEFAULT_LABELING_SCHEMA = "AVTP_Intrusion_dataset"
+
+LABELING_SCHEMA_FACTORY = {
+    "AVTP_Intrusion_dataset": labeling_schemas.avtp_intrusion_labeling_schema,
+    "TOW_IDS_dataset_one_class": labeling_schemas.tow_ids_one_class_labeling_schema,
+    "TOW_IDS_dataset_multi_class": labeling_schemas.tow_ids_multi_class_labeling_schema
+}
 
 class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator):
     def __init__(self, config: typing.Dict):
@@ -19,9 +27,13 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         self._number_of_bytes = config.get('number_of_bytes', DEFAULT_NUMBER_OF_BYTES)
         self._window_slide = config.get('window_slide', DEFAULT_WINDOW_SLIDE)
         self._number_of_columns = self._number_of_bytes * 2
+        self._labeling_schema = config.get('labeling_schema', DEFAULT_LABELING_SCHEMA)
 
         self._multiclass = config.get('multiclass', False)
 
+        self._output_path_suffix = f"{self._labeling_schema}_Wsize_{self._window_size}_Cols_{self._number_of_columns}_Wslide_{self._window_slide}_MC_{self._multiclass}"
+
+        self._filter_avtp_packets = True if (self._labeling_schema) == "AVTP_Intrusion_dataset" else False
 
     def generate_features(self, paths_dictionary: typing.Dict):
         raw_injected_only_packets = self.__read_raw_packets(paths_dictionary['injected_only_frame_path'])
@@ -50,8 +62,8 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
             X = np.concatenate((X, aggregated_X), axis=0, dtype='uint8')
             y = np.concatenate((y, aggregated_y), axis=0, dtype='uint8')
 
-            np.savez(f"{paths_dictionary['output_path']}/X_Wsize_{self._window_size}_Cols_{self._number_of_columns}_Wslide_{self._window_slide}", X)
-            np.savez(f"{paths_dictionary['output_path']}/y_Wsize_{self._window_size}_Cols_{self._number_of_columns}_Wslide_{self._window_slide}", y)
+            np.savez(f"{paths_dictionary['output_path']}/X_{self._output_path_suffix}", X)
+            np.savez(f"{paths_dictionary['output_path']}/y_{self._output_path_suffix}", y)
 
 
     def load_features(self, paths_dictionary: typing.Dict):
@@ -69,14 +81,16 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
 
         return [[X[i], y[i]] for i in range(X.shape[0])]
 
-
     def __read_raw_packets(self, pcap_filepath):
         raw_packets = rdpcap(pcap_filepath)
 
         raw_packets_list = []
 
         for packet in raw_packets:
-            if (len(packet) == AVTP_PACKETS_LENGHT):
+            if self._filter_avtp_packets:
+                if (len(packet) == AVTP_PACKETS_LENGHT):
+                    raw_packets_list.append(raw(packet))
+            else:
                 raw_packets_list.append(raw(packet))
 
         return raw_packets_list
@@ -181,17 +195,14 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
 
             # Get a sequence of data for x
             seq_X = x_data[start_ix:end_ix]
-            if (self._window_slide == 1):
-              # Get only the last element of the sequence for y
-              seq_y = y_data[end_ix]
-            else:
-              # If the sequence contains an attack, the label is considered as attack
-              tmp_seq_y = y_data[start_ix:end_ix]
-              if 1 in tmp_seq_y:
-                seq_y = 1
-              else:
-                seq_y = 0
-            # Append the list with sequencies
+
+            # Get a squence of data for y
+            tmp_seq_y = y_data[start_ix : end_ix]
+
+            # Labeling schema
+            seq_y = LABELING_SCHEMA_FACTORY[self._labeling_schema](tmp_seq_y)
+
+            # Append the list with sequences
             X.append(seq_X)
             y.append(seq_y)
 
