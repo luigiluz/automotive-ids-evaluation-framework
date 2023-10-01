@@ -98,7 +98,8 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
 
         return ret
 
-    def __reset_early_stopping_counter(self):
+    def __reset_early_stopping(self):
+        self._best_val_loss = float("inf")
         self._epochs_without_improvement = 0
 
     def __train_model(self, criterion, device, trainloader, fold, epoch) -> int:
@@ -157,9 +158,9 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
                 output = self._model(data)
                 val_loss += criterion(output, target).item()  # sum up batch loss
 
-                ret = self.__check_early_stopping(val_loss, testloader)
+        ret = self.__check_early_stopping(val_loss, testloader)
 
-            return ret, val_loss
+        return ret, val_loss
 
 
     def __test_model(self, criterion, device, testloader, fold):
@@ -266,8 +267,8 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
 
             self.__test_model(criterion, device, testloader, fold)
 
-            # Reset early stopping counter for next fold
-            self.__reset_early_stopping_counter()
+            # Reset early stopping for next fold
+            self.__reset_early_stopping()
 
             # Save model
             self.__save_model_state_dict(fold)
