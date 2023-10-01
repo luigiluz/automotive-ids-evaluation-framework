@@ -4,7 +4,7 @@
 	  "window_size": 44,
 	  "window_slide": 1,
 	  "number_of_bytes": 58,
-	  "multiclass": true
+	  "multiclass": false
 	},
 	"paths": {
 	  "injected_only_frame_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/raw/single-MPEG-frame.pcap",
