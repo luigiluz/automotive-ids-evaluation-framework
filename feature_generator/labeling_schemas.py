@@ -3,6 +3,7 @@ NORMAL_KEY = "Normal"
 ABNORMAL_KEY = "Abnormal"
 INDEX_COLUMN = "index"
 DESCRIPTION_COLUMN = "Description"
+CLASS_COLUMN = "Class"
 
 def avtp_intrusion_labeling_schema(y_sequence):
     # Expects y_sequence as a list
@@ -19,7 +20,7 @@ def tow_ids_one_class_labeling_schema(y_sequence):
     # Labeling schema: if there is an attack in the sequence, the sequence is considered as an attack
     seq_y = 0
 
-    if ABNORMAL_KEY in y_sequence:
+    if ABNORMAL_KEY in y_sequence[CLASS_COLUMN].values:
         seq_y = 1
 
     return seq_y
@@ -35,9 +36,9 @@ def tow_ids_multi_class_labeling_schema(y_sequence):
     set_attacks = set(TOW_IDS_ATTACK_LABELS)
     set_sequence_indexes = set(indexes_list)
 
-    intersection = list(set_sequence_indexes.intersection(set_attacks))
+    intersect = any(set_atk in set_sequence_indexes for set_atk in set_attacks)
 
-    if intersection is not None:
+    if intersect is True:
         attacks_mask = indexes[INDEX_COLUMN].isin(TOW_IDS_ATTACK_LABELS)
         indexes_attacks = indexes[attacks_mask]
         seq_y = indexes_attacks[INDEX_COLUMN].values[0]
