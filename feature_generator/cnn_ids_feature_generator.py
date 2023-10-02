@@ -138,7 +138,7 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
                         "F_I": 5
                     }
                 )
-            y = np.array(y["Class"])
+            y = np.array(y["Class"].values)
         else:
             y = np.load(paths_dictionary['y_path'])
             y = y.f.arr_0
