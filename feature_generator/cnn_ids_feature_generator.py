@@ -14,6 +14,7 @@ DEFAULT_NUMBER_OF_BYTES = 58
 DEFAULT_WINDOW_SLIDE = 1
 AVTP_PACKETS_LENGHT = 438
 DEFAULT_LABELING_SCHEMA = "AVTP_Intrusion_dataset"
+DEFAULT_DATASET = "AVTP_Intrusion"
 
 LABELING_SCHEMA_FACTORY = {
     "AVTP_Intrusion_dataset": labeling_schemas.avtp_intrusion_labeling_schema,
@@ -31,11 +32,63 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
 
         self._multiclass = config.get('multiclass', False)
 
+        self._dataset = config.get('dataset', DEFAULT_DATASET)
+
         self._output_path_suffix = f"{self._labeling_schema}_Wsize_{self._window_size}_Cols_{self._number_of_columns}_Wslide_{self._window_slide}_MC_{self._multiclass}"
 
         self._filter_avtp_packets = True if (self._labeling_schema) == "AVTP_Intrusion_dataset" else False
+        print(f"filter_avtp_packets = {self._filter_avtp_packets}")
 
     def generate_features(self, paths_dictionary: typing.Dict):
+        CNN_IDS_FEAT_GEN_AVAILABLE_DATASETS = {
+            "AVTP_Intrusion_dataset": self.__avtp_dataset_generate_features,
+            "TOW_IDS_dataset": self.__tow_ids_dataset_generate_features
+        }
+
+        if self._dataset not in CNN_IDS_FEAT_GEN_AVAILABLE_DATASETS:
+            raise KeyError(f"Selected dataset: {self._dataset} is NOT available for CNN IDS Feature Generator!")
+
+        feature_generator = CNN_IDS_FEAT_GEN_AVAILABLE_DATASETS[self._dataset](paths_dictionary)
+
+    def __tow_ids_dataset_generate_features(self, paths_dictionary: typing.Dict):
+        # Load raw packets
+        labels = pd.read_csv(paths_dictionary["y_train_path"], header=None, names=["index", "Class", "Description"])
+        labels = labels.drop(columns=["index"])
+        converted_packets_list = []
+        raw_packets = rdpcap(paths_dictionary["training_packets_path"])
+
+        print(">> Loading raw packets...")
+        for raw_packet in raw_packets:
+            converted_packet = np.frombuffer(raw(raw_packet), dtype='uint8')
+
+            converted_packet_len = len(converted_packet)
+            if converted_packet_len < self._number_of_bytes:
+                bytes_to_pad = self._number_of_bytes - converted_packet_len
+                converted_packet = np.pad(converted_packet, (0, bytes_to_pad), 'constant')
+            else:
+                converted_packet = converted_packet[0:self._number_of_bytes]
+
+            converted_packets_list.append(converted_packet)
+
+        converted_packets = np.array(converted_packets_list, dtype='uint8')
+
+        # Preprocess packets
+        print(">> Preprocessing raw packets...")
+        preprocessed_packets = self.__preprocess_raw_packets(converted_packets, split_into_nibbles=True)
+
+        print(f"len_preprocessed_packets = {len(preprocessed_packets)}")
+        print(f"preprocessed_packets[0] = {preprocessed_packets[0]}")
+
+        # Aggregate features and labels
+        print(">> Aggregating and labeling...")
+        aggregated_X, aggregated_y = self.__aggregate_based_on_window_size(preprocessed_packets, labels)
+
+        np.savez(f"{paths_dictionary['output_path']}/X_{self._output_path_suffix}", aggregated_X)
+
+        y_df = pd.DataFrame(aggregated_y, columns=["Class"])
+        y_df.to_csv(f"{paths_dictionary['output_path']}/y_{self._output_path_suffix}.csv")
+
+    def __avtp_dataset_generate_features(self, paths_dictionary: typing.Dict):
         raw_injected_only_packets = self.__read_raw_packets(paths_dictionary['injected_only_frame_path'])
         injected_only_packets_array = self.__convert_raw_packets(raw_injected_only_packets)
 
@@ -71,8 +124,24 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         X = X.f.arr_0
         X = X.reshape((X.shape[0], -1, self._window_size, self._number_of_columns))
 
-        y = np.load(paths_dictionary['y_path'])
-        y = y.f.arr_0
+        if (self._dataset == "TOW_IDS_dataset"):
+            y = pd.read_csv(paths_dictionary['y_path'])
+            y = y.drop(columns=["Unnamed: 0"])
+            if self._dataset == "TOW_IDS_multiclass":
+                y["Class"] = y["Class"].map(
+                    {
+                        "Normal": 0,
+                        "C_D": 1,
+                        "C_R": 2,
+                        "M_F": 3,
+                        "P_I": 4,
+                        "F_I": 5
+                    }
+                )
+            y = np.array(y["Class"])
+        else:
+            y = np.load(paths_dictionary['y_path'])
+            y = y.f.arr_0
 
         if (self._multiclass):
             y = y.reshape(-1, 1)
@@ -96,11 +165,20 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         return raw_packets_list
 
 
-    def __convert_raw_packets(self, raw_packets_list):
+    def __convert_raw_packets(self, raw_packets_list, zero_padding=False):
         converted_packets_list = []
 
         for raw_packet in raw_packets_list:
             converted_packet = np.frombuffer(raw_packet, dtype='uint8')
+
+            if zero_padding:
+                converted_packet_len = len(converted_packet)
+                if converted_packet_len < self._number_of_bytes:
+                    bytes_to_pad = self._number_of_bytes - converted_packet_len
+                    converted_packet = np.pad(converted_packet, (0, bytes_to_pad), 'constant')
+                else:
+                    converted_packet = converted_packet[0:self._number_of_bytes]
+
             converted_packets_list.append(converted_packet)
 
         return np.array(converted_packets_list, dtype='uint8')
@@ -128,8 +206,8 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         return labels_list
 
 
-    def __select_packets_bytes(self, packets_list, first_byte=0, last_byte=58):
-        selected_packets = packets_list[:, first_byte:last_byte]
+    def __select_packets_bytes(self, packets_list):
+        selected_packets = packets_list[:, 0:self._number_of_bytes]
 
         return np.array(selected_packets, dtype='uint8')
 
@@ -208,6 +286,6 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
 
         # Make final arrays
         x_array = np.array(X, dtype='uint8')
-        y_array = np.array(y, dtype='uint8')
+        # y_array = np.array(y, dtype='uint8')
 
-        return x_array, y_array
+        return x_array, y
