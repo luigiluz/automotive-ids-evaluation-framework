@@ -18,7 +18,12 @@ from torchmetrics.classification import (
     BinaryF1Score,
     BinaryPrecision,
     BinaryRecall,
-    BinaryAUROC
+    BinaryAUROC,
+    MulticlassAccuracy,
+    MulticlassF1Score,
+    MulticlassPrecision,
+    MulticlassRecall,
+    MulticlassAUROC,
 )
 
 class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTrainValidate):
@@ -49,6 +54,8 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         self._early_stopping_patience = model_config_dict['early_stopping_patience']
         self._best_val_loss = float("inf")
         self._epochs_without_improvement = 0
+
+        self._number_of_outputs = model_config_dict['num_outputs']
 
     def __seed_all(self, seed):
         # Reference
@@ -109,7 +116,10 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         self._model = self._model.to(device)
         optimizer = torch.optim.Adam(self._model.parameters(), lr=self._learning_rate)
 
-        accuracy_metric = BinaryAccuracy().to(device)
+        if self._number_of_outputs > 1:
+            accuracy_metric = MulticlassAccuracy(num_classes=self._number_of_outputs).to(device)
+        else:
+            accuracy_metric = BinaryAccuracy().to(device)
 
         for batch_idx, (data, target) in enumerate(trainloader):
             data = data.float()
@@ -166,11 +176,18 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
     def __test_model(self, criterion, device, testloader, fold):
         self._model.eval()
 
-        accuracy_metric = BinaryAccuracy().to(device)
-        f1_score_metric = BinaryF1Score().to(device)
-        auc_roc_metric = BinaryAUROC().to(device)
-        precision_score = BinaryPrecision().to(device)
-        recall_score = BinaryRecall().to(device)
+        if self._number_of_outputs > 1:
+            accuracy_metric = MulticlassAccuracy(num_classes=self._number_of_outputs).to(device)
+            f1_score_metric = MulticlassF1Score(num_classes=self._number_of_outputs).to(device)
+            auc_roc_metric = MulticlassAUROC(num_classes=self._number_of_outputs).to(device)
+            precision_score = MulticlassPrecision(num_classes=self._number_of_outputs).to(device)
+            recall_score = MulticlassRecall(num_classes=self._number_of_outputs).to(device)
+        else:
+            accuracy_metric = BinaryAccuracy().to(device)
+            f1_score_metric = BinaryF1Score().to(device)
+            auc_roc_metric = BinaryAUROC().to(device)
+            precision_score = BinaryPrecision().to(device)
+            recall_score = BinaryRecall().to(device)
 
         with torch.no_grad():
             for data, target in testloader:
@@ -183,7 +200,11 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
 
                 accuracy_metric.update(output.detach(), target)
                 f1_score_metric.update(output.detach(), target)
-                auc_roc_metric.update(output.detach(), target)
+                # TODO: Find a better way to perform this computation
+                if self._number_of_outputs == 6:
+                    auc_roc_metric.update(output.detach(), torch.argmax(target, dim=1))
+                else:
+                    auc_roc_metric.update(output.detach(), target)
                 precision_score.update(output.detach(), target)
                 recall_score.update(output.detach(), target)
 
