@@ -32,3 +32,9 @@ class MultiClassConvNetIDS(nn.Module):
         x = self.binary_classification_layer(x)
         x = torch.sigmoid(x)
         return x
+
+    def cnn_forward(self, x):
+        x = self.feature_extraction_layer(x)
+        x = torch.flatten(x, 1)
+
+        return x
