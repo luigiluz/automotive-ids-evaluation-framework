@@ -59,7 +59,13 @@ def main():
     if model_name not in AVAILABLE_IDS:
         raise KeyError(f"Selected model: {model_name} is NOT available!")
 
-    model = AVAILABLE_IDS[model_name]()
+    num_outputs = model_hyperparams_dict.get('num_outputs', 1)
+    if num_outputs > 1:
+        model = AVAILABLE_IDS[model_name](number_of_outputs=num_outputs)
+    else:
+        model = AVAILABLE_IDS[model_name]()
+
+    print(f"> {model_name} was created with {num_outputs} outputs")
 
     print("> Initializing model training and evaluation...")
 
