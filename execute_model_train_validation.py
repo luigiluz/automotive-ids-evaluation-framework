@@ -2,7 +2,11 @@ import argparse
 import json
 
 from feature_generator import cnn_ids_feature_generator
-from models import conv_net_ids, multiclass_conv_net_ids
+from models import (
+    conv_net_ids,
+    multiclass_conv_net_ids,
+    pruned_conv_net_ids
+)
 from model_train_validation import pytorch_model_train_validate
 
 AVAILABLE_FEATURE_GENERATORS = {
@@ -11,7 +15,8 @@ AVAILABLE_FEATURE_GENERATORS = {
 
 AVAILABLE_IDS = {
     "CNNIDS": conv_net_ids.ConvNetIDS,
-    "MultiClassCNNIDS": multiclass_conv_net_ids.MultiClassConvNetIDS
+    "MultiClassCNNIDS": multiclass_conv_net_ids.MultiClassConvNetIDS,
+    "PrunedCNNIDS": pruned_conv_net_ids.PrunedConvNetIDS
 }
 
 # TODO: adicionar classe que pega os itens do pytorch
