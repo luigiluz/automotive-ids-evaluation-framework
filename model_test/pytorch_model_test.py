@@ -14,9 +14,10 @@ from sklearn.model_selection import StratifiedKFold
 class PytorchModelTest(abstract_model_test.AbstractModelTest):
     def __init__(self, model, presaved_models_state_dict: typing.Dict):
         self._model = model
-        self._presaved_models_state_dict = presaved_models_state_dict
+        self._presaved_models_state_dict = presaved_models_state_dict.get("presaved_models")
         self._evaluation_metrics = []
         self._batch_size = 64
+        self._output_path = presaved_models_state_dict.get("output_path")
 
     def __seed_all(self, seed):
         # Reference
@@ -56,8 +57,8 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
                 output = self._model.cnn_forward(data)
 
                 store_tensor = torch.cat((store_tensor, output.cpu()), 0).cpu()
-                np.savez("/home/lfml/workspace/datasets/sample_tensor.npz", store_tensor.numpy())
-                break
+
+        np.savez(f"{self._output_path}/fold_{fold}_cnn_output.npz", store_tensor.numpy())
 
     def execute(self, data):
         def collate_gpu(batch):
