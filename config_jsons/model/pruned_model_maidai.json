@@ -1,0 +1,13 @@
+{
+    "framework": "pytorch",
+    "model": "PrunedCNNIDS",
+    "model_name": "PrunedCNNIDS",
+    "criterion": "binary-cross-entropy",
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "num_epochs": 30,
+    "early_stopping_patience": 5,
+    "num_outputs": 1,
+    "metrics_output_path":"/home/lfml/workspace/metrics",
+    "models_output_path":"/home/lfml/workspace/models"
+}
