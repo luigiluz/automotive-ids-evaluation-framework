@@ -39,7 +39,7 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         self._evaluation_metrics = []
         self._train_validation_losses = []
 
-        self._run_id = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_pytorch"
 
         self._metrics_output_path = f"{model_config_dict['metrics_output_path']}/{self._run_id}"
         if not os.path.exists(self._metrics_output_path):
@@ -222,7 +222,8 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
     def execute(self, train_data):
         def collate_gpu(batch):
             x, t = torch.utils.data.dataloader.default_collate(batch)
-            return x.to(device="cuda:0"), t.to(device="cuda:0")
+            # return x.to(device="cuda:0"), t.to(device="cuda:0")
+            return x.to(device="cpu"), t.to(device="cpu")
 
         # Reset all seed to ensure reproducibility
         self.__seed_all(0)
@@ -230,7 +231,8 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         g.manual_seed(42)
 
         # Use gpu to train as preference
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cpu")
 
         # Get this criterion from configuration parameter
         criterion = None
