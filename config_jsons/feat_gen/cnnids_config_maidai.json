@@ -13,7 +13,7 @@
 	  "output_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed"
 	},
 	"load_paths": {
-		"X_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/X_Wsize_44_Cols_116_Wslide_1.npz",
-		"y_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/y_Wsize_44_Cols_116_Wslide_1.npz"
+		"X_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/X_train_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False.npz",
+		"y_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/y_train_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False.npz"
 	}
   }
