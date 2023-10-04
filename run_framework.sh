@@ -7,10 +7,17 @@ MODEL_CONFIG_FOLDER="config_jsons/model"
 PRESAVED_MODELS_FOLDER="config_jsons/presaved_files"
 
 # Change this according to the desired configuration
-SELECTED_FEAT_GEN_CONFIG="cnnids_tow_config_maidai.json"
-# SELECTED_MODEL_CONFIG="cnnids_model_maidai.json"
-SELECTED_MODEL_CONFIG="multiclass_cnnids_model_maidai.json"
+## Feat generator configs
+# SELECTED_FEAT_GEN_CONFIG="cnnids_tow_config_maidai.json"
+SELECTED_FEAT_GEN_CONFIG="pruned_config_maidai.json"
 
+## Model configs
+# SELECTED_MODEL_CONFIG="cnnids_model_maidai.json"
+# SELECTED_MODEL_CONFIG="multiclass_cnnids_model_maidai.json"
+# SELECTED_MODEL_CONFIG="pruned_model_maidai.json"
+SELECTED_MODEL_CONFIG="random_forest_params.json"
+
+## Presaved configs
 SELECTED_PRESAVED_MODELS="multiclass_cnn.json"
 
 # DO NOT CHANGE FROM THIS POINT ON
@@ -22,7 +29,7 @@ PRESAVED_MODELS_PATH="${BASE_PATH}/${PRESAVED_MODELS_FOLDER}/${SELECTED_PRESAVED
 # venv/bin/python3 execute_feature_generator.py --feat_gen_config ${FEAT_GEN_CONFIG_PATH}
 
 # Run the model training and validation step
-# venv/bin/python3 execute_model_train_validation.py --feat_gen_config ${FEAT_GEN_CONFIG_PATH} --model_hyperparams ${MODEL_CONFIG_PATH}
+venv/bin/python3 execute_model_train_validation.py --feat_gen_config ${FEAT_GEN_CONFIG_PATH} --model_hyperparams ${MODEL_CONFIG_PATH}
 
 # Run the model test step
-venv/bin/python3 execute_model_test.py --feat_gen_config ${FEAT_GEN_CONFIG_PATH} --model_hyperparams ${MODEL_CONFIG_PATH} --presaved ${PRESAVED_MODELS_PATH}
+# venv/bin/python3 execute_model_test.py --feat_gen_config ${FEAT_GEN_CONFIG_PATH} --model_hyperparams ${MODEL_CONFIG_PATH} --presaved ${PRESAVED_MODELS_PATH}
