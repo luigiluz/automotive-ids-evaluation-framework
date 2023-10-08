@@ -12,6 +12,7 @@ from torch import nn
 from sklearn.model_selection import StratifiedKFold
 
 from . import abstract_model_train_validate
+from custom_metrics import timing, storage
 
 from torchmetrics.classification import (
     BinaryAccuracy,
@@ -215,15 +216,26 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
             prec = precision_score.compute().cpu().numpy()
             recall = recall_score.compute().cpu().numpy()
 
+            # TODO: Get the data format using the data
+            dummy_input = torch.randn(1, 1, 44, 116, dtype=torch.float).to(device)
+            if device.type == "cpu":
+                timing_func = timing.pytorch_inference_time_cpu
+            else:
+                timing_func = timing.pytorch_inference_time_gpu
+            inference_time = timing_func(self._model, dummy_input)
+
+            # TODO: Change this to be only used in case model is random forest
+            model_size = storage.pytorch_compute_model_size_mb(self._model)
+
             # Append metrics on list
-            self._evaluation_metrics.append([fold, acc, prec, recall, f1, roc_auc])
+            self._evaluation_metrics.append([fold, acc, prec, recall, f1, roc_auc, inference_time, model_size])
 
 
     def execute(self, train_data):
         def collate_gpu(batch):
             x, t = torch.utils.data.dataloader.default_collate(batch)
-            # return x.to(device="cuda:0"), t.to(device="cuda:0")
-            return x.to(device="cpu"), t.to(device="cpu")
+            return x.to(device="cuda:1"), t.to(device="cuda:1")
+            # return x.to(device="cpu"), t.to(device="cpu")
 
         # Reset all seed to ensure reproducibility
         self.__seed_all(0)
@@ -231,8 +243,8 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         g.manual_seed(42)
 
         # Use gpu to train as preference
-        # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        device = torch.device("cpu")
+        device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+        # device = torch.device("cpu")
 
         # Get this criterion from configuration parameter
         criterion = None
@@ -297,7 +309,7 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
             self.__save_model_state_dict(fold)
 
             # Export metrics
-            metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc"])
+            metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc", "inference_time", "model_size"])
             metrics_df.to_csv(f"{self._metrics_output_path}/val_metrics_{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
 
             train_val_loss_df = pd.DataFrame(self._train_validation_losses, columns=["fold", "epoch", "train_loss", "val_loss"])
