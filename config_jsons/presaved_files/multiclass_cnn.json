@@ -1,6 +1,0 @@
-{
-    "presaved_models": {
-        "0": "/home/lfml/workspace/models/2023_10_02_22_14_33/pytorch_model_MultiClassCNNIDS_0"
-    },
-    "output_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/dl_output"
-}
