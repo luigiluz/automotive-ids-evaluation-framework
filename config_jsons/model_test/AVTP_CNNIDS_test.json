@@ -7,11 +7,11 @@
             "number_of_bytes": 58,
             "multiclass": false,
             "labeling_schema": "AVTP_Intrusion_dataset",
-            "dataset": "AVTP_Intrusion_dataset",
-            "load_paths": {
-                "X_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/X_train_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False.npz",
-                "y_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/y_train_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False.npz"
-            }
+            "dataset": "AVTP_Intrusion_dataset"
+        },
+        "load_paths": {
+            "X_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/X_train_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False.npz",
+            "y_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/y_train_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False.npz"
         }
     },
     "model_specs": {

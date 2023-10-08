@@ -32,31 +32,33 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         self._model = model
 
         self._model_name = model_config_dict['model_name']
-        self._learning_rate = model_config_dict['learning_rate']
-        self._batch_size = model_config_dict['batch_size']
-        self._num_epochs = model_config_dict['num_epochs']
         self._criterion = model_config_dict['criterion']
+
+        hyperparameters_dict = model_config_dict.get('hyperparameters')
+        self._learning_rate = hyperparameters_dict['learning_rate']
+        self._batch_size = hyperparameters_dict['batch_size']
+        self._num_epochs = hyperparameters_dict['num_epochs']
 
         self._evaluation_metrics = []
         self._train_validation_losses = []
 
         self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_pytorch"
 
-        self._metrics_output_path = f"{model_config_dict['metrics_output_path']}/{self._run_id}"
+        self._metrics_output_path = f"{model_config_dict['paths']['metrics_output_path']}/{self._run_id}"
         if not os.path.exists(self._metrics_output_path):
             os.makedirs(self._metrics_output_path)
             print("Metrics output directory created successfully")
 
-        self._models_output_path = f"{model_config_dict['models_output_path']}/{self._run_id}"
+        self._models_output_path = f"{model_config_dict['paths']['models_output_path']}/{self._run_id}"
         if not os.path.exists(self._models_output_path):
             os.makedirs(self._models_output_path)
             print("Models output directory created successfully")
 
-        self._early_stopping_patience = model_config_dict['early_stopping_patience']
+        self._early_stopping_patience = hyperparameters_dict['early_stopping_patience']
         self._best_val_loss = float("inf")
         self._epochs_without_improvement = 0
 
-        self._number_of_outputs = model_config_dict['num_outputs']
+        self._number_of_outputs = hyperparameters_dict['num_outputs']
 
     def __seed_all(self, seed):
         # Reference
