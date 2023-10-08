@@ -70,8 +70,8 @@ def main():
 
     # TODO: Transformar isso numa função externa ao main
     print("> Creating model...")
-    num_outputs = model_specs_dict.get('hyperparameters').get('num_outputs', 1)
     if framework == "pytorch":
+        num_outputs = model_specs_dict.get('hyperparameters').get('num_outputs', 1)
         if num_outputs > 1:
             model = AVAILABLE_IDS[model_name](number_of_outputs=num_outputs)
         else:

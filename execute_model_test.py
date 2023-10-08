@@ -3,8 +3,16 @@ import json
 import torch
 
 from feature_generator import cnn_ids_feature_generator
-from models import conv_net_ids, multiclass_conv_net_ids
-from model_test import pytorch_model_test
+from models import (
+    conv_net_ids,
+    multiclass_conv_net_ids,
+    pruned_conv_net_ids,
+    sklearn_classifier
+)
+from model_test import (
+    pytorch_model_test,
+    sklearn_model_test
+)
 
 AVAILABLE_FEATURE_GENERATORS = {
     "CNNIDSFeatureGenerator": cnn_ids_feature_generator.CNNIDSFeatureGenerator
@@ -12,11 +20,14 @@ AVAILABLE_FEATURE_GENERATORS = {
 
 AVAILABLE_IDS = {
     "CNNIDS": conv_net_ids.ConvNetIDS,
-    "MultiClassCNNIDS": multiclass_conv_net_ids.MultiClassConvNetIDS
+    "MultiClassCNNIDS": multiclass_conv_net_ids.MultiClassConvNetIDS,
+    "PrunedCNNIDS": pruned_conv_net_ids.PrunedConvNetIDS,
+    "SklearnClassifier": sklearn_classifier.SklearnClassifier
 }
 
 AVAILABLE_FRAMEWORKS = {
-    "pytorch": pytorch_model_test.PytorchModelTest
+    "pytorch": pytorch_model_test.PytorchModelTest,
+    "sklearn": sklearn_model_test.SklearnModelTest
 }
 
 def main():
@@ -40,7 +51,6 @@ def main():
     feat_gen_config_dict = model_test_config_dict['feat_gen']
     model_specs_dict = model_test_config_dict['model_specs']
 
-    print("> Loading features...")
     feature_generator_name = feat_gen_config_dict['feature_generator']
     feature_generator_config = feat_gen_config_dict['config']
     feature_generator_load_paths = feat_gen_config_dict['load_paths']
@@ -48,27 +58,30 @@ def main():
     if feature_generator_name not in AVAILABLE_FEATURE_GENERATORS:
         raise KeyError(f"Selected feature generator: {feature_generator_name} is NOT available!")
 
-    selected_feature_generator = AVAILABLE_FEATURE_GENERATORS[feature_generator_name](feature_generator_config)
-    data = selected_feature_generator.load_features(feature_generator_load_paths)
-
-    print("> Creating model...")
-    model_name = model_specs_dict['model']
-    if model_name not in AVAILABLE_IDS:
-        raise KeyError(f"Selected model: {model_name} is NOT available!")
-
-    num_outputs = model_specs_dict.get('hyperparameters').get('num_outputs', 1)
-    if num_outputs > 1:
-        model = AVAILABLE_IDS[model_name](number_of_outputs=num_outputs)
-    else:
-        model = AVAILABLE_IDS[model_name]()
-
-    print("> Initializing model test...")
-
     framework = model_specs_dict['framework']
     if framework not in AVAILABLE_FRAMEWORKS:
         raise KeyError(f"Selected framework: {framework} is NOT available!")
 
-    test = AVAILABLE_FRAMEWORKS["pytorch"](model, model_test_config_dict)
+    model_name = model_specs_dict['model']
+    if model_name not in AVAILABLE_IDS:
+        raise KeyError(f"Selected model: {model_name} is NOT available!")
+
+    print("> Loading features...")
+    selected_feature_generator = AVAILABLE_FEATURE_GENERATORS[feature_generator_name](feature_generator_config)
+    data = selected_feature_generator.load_features(feature_generator_load_paths)
+
+    print("> Creating model...")
+    if framework == "pytorch":
+        num_outputs = model_specs_dict.get('hyperparameters').get('num_outputs', 1)
+        if num_outputs > 1:
+            model = AVAILABLE_IDS[model_name](number_of_outputs=num_outputs)
+        else:
+            model = AVAILABLE_IDS[model_name]()
+    elif framework == "sklearn":
+        model = AVAILABLE_IDS[model_name](model_specs_dict)
+
+    print("> Initializing model test...")
+    test = AVAILABLE_FRAMEWORKS[framework](model, model_test_config_dict)
     test.execute(data)
 
     print("Model tested successfully!")
