@@ -18,7 +18,7 @@ class MultiStageIDS():
 
     def __multi_stage_ensemble(self, x_rf, x_dl, weight=0.5):
         # definir como isso vai acontecer
-        ms_output = torch.Tensor([0])
+        ms_output = x_rf + x_dl
         return ms_output
 
     def forward(self, x):
@@ -28,8 +28,8 @@ class MultiStageIDS():
 
         # possible place for random forest model
         # TODO: replace this for the previous layer output
-        rf_input = np.random.normal(0, 0.1, 7).reshape(1, -1)
-        x_rf = torch.from_numpy(self._rf_model.predict(rf_input))
+        rf_input = np.random.normal(0, 0.1, (64, 7))
+        x_rf = torch.from_numpy(self._rf_model.predict(rf_input)).reshape(-1, 1)
 
         print(f"x_rf = {x_rf}")
 
@@ -40,9 +40,14 @@ class MultiStageIDS():
         # # this is the second fc layer (64 units)
         # x = self._cnn_model.binary_classification_layer_fc2(x)
         x_dl = torch.sigmoid(x)
-        print(f"x_dl = {x_dl}")
 
+        # as entradas sao dois vetores de mesmo n por m
         x_ms = self.__multi_stage_ensemble(x_rf, x_dl)
-        print(f"x_ms = {x_ms}")
 
-        return torch.Tensor([x_rf, x_dl, x_ms])
+        output = {
+            "rf": x_rf,
+            "dl": x_dl,
+            "ms": x_ms
+        }
+
+        return output

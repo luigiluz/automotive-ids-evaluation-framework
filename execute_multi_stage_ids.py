@@ -21,6 +21,19 @@ from model_train_validation import (
 
 from sklearn.model_selection import StratifiedKFold
 
+from torchmetrics.classification import (
+    BinaryAccuracy,
+    BinaryF1Score,
+    BinaryPrecision,
+    BinaryRecall,
+    BinaryAUROC,
+    MulticlassAccuracy,
+    MulticlassF1Score,
+    MulticlassPrecision,
+    MulticlassRecall,
+    MulticlassAUROC,
+)
+
 AVAILABLE_FEATURE_GENERATORS = {
     "CNNIDSFeatureGenerator": cnn_ids_feature_generator.CNNIDSFeatureGenerator
 }
@@ -130,6 +143,7 @@ def main():
     # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     device = torch.device("cpu")
     BATCH_SIZE = 64
+    evaluation_metrics = []
 
     # Reset all seed to ensure reproducibility
     __seed_all(0)
@@ -168,7 +182,15 @@ def main():
                     worker_init_fn=__seed_worker,
                     collate_fn=collate_gpu)
 
-        store_tensor = torch.Tensor([])
+        # TODO: pensar uma forma interessante de implementar isso pra ficar mais
+        # simples e nao precisar criar 15 metrics
+        # preciso criar 3 desses, 1 pra cada saída do modelo
+        accuracy_metric = BinaryAccuracy().to(device)
+        f1_score_metric = BinaryF1Score().to(device)
+        auc_roc_metric = BinaryAUROC().to(device)
+        precision_score = BinaryPrecision().to(device)
+        recall_score = BinaryRecall().to(device)
+        # TODO: adicionar o tempo de inferência
 
         with torch.no_grad():
             for data, target in testloader:
@@ -178,13 +200,26 @@ def main():
                 target = target.float()
 
                 output = ms_ids_model.forward(data)
-                print(f"output = {output}")
 
-                store_tensor = torch.cat((store_tensor, output.cpu()), 0).cpu()
-                print(f"store_tensor = {store_tensor}")
-                break
+                output_rf = output["rf"]
+                output_dl = output["dl"]
+                output_ms = output["ms"]
 
-        break
+                accuracy_metric.update(output_dl.detach(), target)
+                f1_score_metric.update(output_dl.detach(), target)
+                auc_roc_metric.update(output_dl.detach(), target)
+                precision_score.update(output_dl.detach(), target)
+                recall_score.update(output_dl.detach(), target)
+
+        acc = accuracy_metric.compute().cpu().numpy()
+        f1 = f1_score_metric.compute().cpu().numpy()
+        roc_auc = auc_roc_metric.compute().cpu().numpy()
+        prec = precision_score.compute().cpu().numpy()
+        recall = recall_score.compute().cpu().numpy()
+
+        evaluation_metrics.append(["dl", fold, acc, prec, recall, f1, roc_auc])
+
+    metrics_df = pd.DataFrame(evaluation_metrics, columns=["step", "fold", "acc", "prec", "recall", "f1", "roc_auc"])
 
 
 if __name__ == "__main__":
