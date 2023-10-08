@@ -2,23 +2,22 @@ import os
 import random
 import typing
 import datetime
+import pickle
 
 import pandas as pd
 import numpy as np
 
 from . import abstract_model_test
 
-from sklearn.model_selection import StratifiedKFold
-
-class PytorchModelTest(abstract_model_test.AbstractModelTest):
+class SklearnModelTest(abstract_model_test.AbstractModelTest):
     def __init__(self, model, model_specs_dict: typing.Dict):
         self._model = model
-        self._presaved_models_paths_dict = model_specs_dict.get("presaved_paths")
+        self._presaved_models_paths_dict = model_specs_dict["presaved_paths"]
         self._evaluation_metrics = []
 
         self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_sklearn"
 
-        self._metrics_output_path = f"{model_config_dict['metrics_output_path']}/{self._run_id}"
+        self._metrics_output_path = f"{model_specs_dict['model_specs']['paths']['metrics_output_path']}/{self._run_id}"
         if not os.path.exists(self._metrics_output_path):
             os.makedirs(self._metrics_output_path)
             print("Metrics output directory created successfully")
@@ -56,31 +55,15 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
         # Reset all seed to ensure reproducibility
         self.__seed_all(0)
 
-        skf = StratifiedKFold(n_splits=5, random_state=1, shuffle=True)
-
         # Get item from train data
-        X = [item[0] for item in data]
-        y = [item[1] for item in data]
+        X_test = [item[0] for item in data]
+        y_test = [item[1] for item in data]
 
-        # TODO: Find a better way to do this validation
-        # This is to check if y has more than one dimension, for the multiclass case to work with skf.split
-        try:
-            y = np.array(y).argmax(1)
-        except:
-            pass
-
-        # TODO: Essa variação por fold também nem faça tanto sentido, uma vez
-        # que na verdade ele varia dependendo da quantidade de modelos que foi
-        # passado. Então talvez seja melhor fariar por fold index ou algo assim
-        for fold, (train_idx, test_idx) in enumerate(skf.split(X, y)):
-            print('------------fold no---------{}----------------------'.format(fold))
-
-            # Select the test data
-            X_test = X[test_idx]
-            y_test = y[test_idx]
+        for fold_index in self._presaved_models_paths_dict.keys():
+            print('------------fold no---------{}----------------------'.format(fold_index))
 
             # Load the current fold model
-            model_filename = f"{self._presaved_models_paths_dict['paths'][f'{fold}']}"
+            model_filename = f"{self._presaved_models_paths_dict[fold_index]}"
             self._model = pickle.load(open(model_filename, 'rb'))
 
             # Get the train metrics
