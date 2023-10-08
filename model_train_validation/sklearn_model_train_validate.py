@@ -16,6 +16,7 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
 
+from custom_metrics import timing, storage
 
 class SklearnModelTrainValidation(abstract_model_train_validate.AbstractModelTrainValidate):
     def __init__(self, model, model_config_dict: typing.Dict):
@@ -54,7 +55,13 @@ class SklearnModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         recall = recall_score(y_true, y_pred)
         roc_auc = roc_auc_score(y_true, y_pred_prob[:, 1])
 
-        return [acc, f1, prec, recall, roc_auc]
+        dummy_data = X[0].reshape(1, -1)
+        inference_time = timing.sklearn_inference_time(self._model, dummy_data)
+
+        # TODO: Change this to be only used in case model is random forest
+        model_size = storage.sklearn_random_forest_compute_model_size_mb(self._model._model)
+
+        return [acc, f1, prec, recall, roc_auc, inference_time, model_size]
 
     def execute(self, train_data):
         # Reset all seed to ensure reproducibility
@@ -132,5 +139,5 @@ class SklearnModelTrainValidation(abstract_model_train_validate.AbstractModelTra
 
             self._model.reset()
 
-        metrics_df = pd.DataFrame(self._metrics_list, columns=["step", "fold", "acc", "f1", "prec", "recall", "roc_auc"])
+        metrics_df = pd.DataFrame(self._metrics_list, columns=["step", "fold", "acc", "f1", "prec", "recall", "roc_auc", "inference_time", "model_size"])
         metrics_df.to_csv(f"{self._metrics_output_path}/metrics_{self._model_name}.csv")
