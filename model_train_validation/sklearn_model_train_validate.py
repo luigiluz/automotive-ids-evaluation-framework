@@ -26,15 +26,24 @@ class SklearnModelTrainValidation(abstract_model_train_validate.AbstractModelTra
 
         self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_sklearn"
 
-        self._metrics_output_path = f"{model_config_dict['metrics_output_path']}/{self._run_id}"
+        # TODO: Get this from json config file
+        art_path = "/home/lfml/workspace/artifacts"
+        self._artifacts_path = f"{art_path}/{self._run_id}"
+
+        if not os.path.exists(self._artifacts_path):
+            os.makedirs(self._artifacts_path)
+            print("Artifacts output directory created successfully")
+
+        self._metrics_output_path = f"{self._artifacts_path}/metrics"
         if not os.path.exists(self._metrics_output_path):
             os.makedirs(self._metrics_output_path)
             print("Metrics output directory created successfully")
 
-        self._models_output_path = f"{model_config_dict['models_output_path']}/{self._run_id}"
+        self._models_output_path = f"{self._artifacts_path}/models"
         if not os.path.exists(self._models_output_path):
             os.makedirs(self._models_output_path)
             print("Models output directory created successfully")
+
 
     def __seed_all(self, seed):
         if not seed:

@@ -29,6 +29,7 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         self._window_slide = config.get('window_slide', DEFAULT_WINDOW_SLIDE)
         self._number_of_columns = self._number_of_bytes * 2
         self._labeling_schema = config.get('labeling_schema', DEFAULT_LABELING_SCHEMA)
+        self._data_suffix = config.get('suffix')
 
         self._multiclass = config.get('multiclass', False)
 
@@ -83,10 +84,10 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         print(">> Aggregating and labeling...")
         aggregated_X, aggregated_y = self.__aggregate_based_on_window_size(preprocessed_packets, labels)
 
-        np.savez(f"{paths_dictionary['output_path']}/X_{self._output_path_suffix}", aggregated_X)
+        np.savez(f"{paths_dictionary['output_path']}/X_{self._data_suffix}_{self._output_path_suffix}", aggregated_X)
 
         y_df = pd.DataFrame(aggregated_y, columns=["Class"])
-        y_df.to_csv(f"{paths_dictionary['output_path']}/y_{self._output_path_suffix}.csv")
+        y_df.to_csv(f"{paths_dictionary['output_path']}/y_{self._data_suffix}_{self._output_path_suffix}.csv")
 
     def __avtp_dataset_generate_features(self, paths_dictionary: typing.Dict):
         raw_injected_only_packets = self.__read_raw_packets(paths_dictionary['injected_only_frame_path'])
@@ -110,13 +111,14 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
 
             # Aggregate features and labels
             aggregated_X, aggregated_y = self.__aggregate_based_on_window_size(preprocessed_packets, labels)
+            aggregated_y = np.array(aggregated_y, dtype='uint8')
 
             # Concatenate both indoors injected packets
             X = np.concatenate((X, aggregated_X), axis=0, dtype='uint8')
             y = np.concatenate((y, aggregated_y), axis=0, dtype='uint8')
 
-            np.savez(f"{paths_dictionary['output_path']}/X_{self._output_path_suffix}", X)
-            np.savez(f"{paths_dictionary['output_path']}/y_{self._output_path_suffix}", y)
+            np.savez(f"{paths_dictionary['output_path']}/X_{self._data_suffix}_{self._output_path_suffix}", X)
+            np.savez(f"{paths_dictionary['output_path']}/y_{self._data_suffix}_{self._output_path_suffix}", y)
 
 
     def load_features(self, paths_dictionary: typing.Dict):
