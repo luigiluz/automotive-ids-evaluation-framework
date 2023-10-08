@@ -3,7 +3,7 @@ import torch
 from torch import nn
 
 class PrunedConvNetIDS(nn.Module):
-    def __init__(self):
+    def __init__(self, number_of_outputs=1):
         super(PrunedConvNetIDS, self).__init__()
 
         self.feature_extraction_layer = nn.Sequential(
@@ -26,7 +26,7 @@ class PrunedConvNetIDS(nn.Module):
         )
 
         self.binary_classification_layer_fc2 = nn.Sequential(
-            nn.Linear(in_features=64, out_features=1)
+            nn.Linear(in_features=64, out_features=number_of_outputs)
         )
 
     def forward(self, x):
