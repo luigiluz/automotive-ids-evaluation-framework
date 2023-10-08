@@ -34,7 +34,7 @@ MULTI_STAGE_CONFIG_PATH="${BASE_PATH}/${MULTI_STAGE_CONFIG_FOLDER}/${SELECTED_MU
 # venv/bin/python3 execute_model_train_validation.py --model_train_valid_config ${MODEL_TRAIN_VALID_CONFIG_PATH}
 
 # Run the model test step
-venv/bin/python3 execute_model_test.py --model_test_config ${MODEL_TEST_CONFIG_PATH}
+# venv/bin/python3 execute_model_test.py --model_test_config ${MODEL_TEST_CONFIG_PATH}
 
 # Run the multi stage method
-# venv/bin/python3 execute_multi_stage_ids.py --multi_stage_config ${MULTI_STAGE_CONFIG_PATH}
+venv/bin/python3 execute_multi_stage_ids.py --multi_stage_ids_config ${MULTI_STAGE_CONFIG_PATH}
