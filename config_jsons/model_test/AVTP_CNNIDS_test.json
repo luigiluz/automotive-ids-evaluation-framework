@@ -28,7 +28,8 @@
         },
         "paths": {
             "metrics_output_path":"/home/lfml/workspace/metrics",
-            "models_output_path":"/home/lfml/workspace/models"
+            "models_output_path":"/home/lfml/workspace/models",
+            "forward_output_path":"/home/lfml/workspace/forward"
         }
     },
     "presaved_paths": {

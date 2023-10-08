@@ -9,19 +9,31 @@ import numpy as np
 
 from . import abstract_model_test
 
-from sklearn.model_selection import StratifiedKFold
+from torchmetrics.classification import (
+    BinaryAccuracy,
+    BinaryF1Score,
+    BinaryPrecision,
+    BinaryRecall,
+    BinaryAUROC,
+    MulticlassAccuracy,
+    MulticlassF1Score,
+    MulticlassPrecision,
+    MulticlassRecall,
+    MulticlassAUROC,
+)
 
 class PytorchModelTest(abstract_model_test.AbstractModelTest):
-    def __init__(self, model, presaved_models_state_dict: typing.Dict):
+    def __init__(self, model, model_specs_dict: typing.Dict):
         self._model = model
-        self._presaved_models_state_dict = presaved_models_state_dict.get("presaved_models")
+        self._presaved_models_state_dict = model_specs_dict['presaved_paths']
         self._evaluation_metrics = []
-        self._batch_size = 64
-        self._output_path = presaved_models_state_dict.get("output_path")
+        self._batch_size = model_specs_dict['model_specs']['hyperparameters']['batch_size']
+        self._number_of_outputs = model_specs_dict['model_specs']['hyperparameters']['num_outputs']
+        self._forward_output_path = model_specs_dict['model_specs']['paths']['forward_output_path']
 
         self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_pytorch"
 
-        self._metrics_output_path = f"{model_config_dict['metrics_output_path']}/{self._run_id}"
+        self._metrics_output_path = f"{model_specs_dict['model_specs']['paths']['metrics_output_path']}/{self._run_id}"
         if not os.path.exists(self._metrics_output_path):
             os.makedirs(self._metrics_output_path)
             print("Metrics output directory created successfully")
@@ -66,10 +78,10 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
 
                 store_tensor = torch.cat((store_tensor, output.cpu()), 0).cpu()
 
-        np.savez(f"{self._output_path}/fold_{fold}_cnn_output.npz", store_tensor.numpy())
+        np.savez(f"{self._forward_output_path}/fold_{fold}_cnn_output.npz", store_tensor.numpy())
 
 
-    def __test_model(self, criterion, device, testloader, fold):
+    def __test_model(self, device, testloader, fold):
         self._model.eval()
 
         if self._number_of_outputs > 1:
@@ -138,49 +150,24 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
         # Use gpu to train as preference
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-        skf = StratifiedKFold(n_splits=5, random_state=1, shuffle=True)
+        for fold_index in self._presaved_models_state_dict.keys():
+            print('------------fold no---------{}----------------------'.format(fold_index))
 
-        # Get item from train data
-        X = [item[0] for item in data]
-        y = [item[1] for item in data]
-
-        # TODO: Find a better way to do this validation
-        # This is to check if y has more than one dimension, for the multiclass case to work with skf.split
-        try:
-            y = np.array(y).argmax(1)
-        except:
-            pass
-
-        for fold, (train_idx, test_idx) in enumerate(skf.split(X, y)):
-            print('------------fold no---------{}----------------------'.format(fold))
-
-            # train_subsampler = torch.utils.data.SubsetRandomSampler(train_idx)
-            test_subsampler = torch.utils.data.SubsetRandomSampler(test_idx)
-
-            # trainloader = torch.utils.data.DataLoader(
-            #             data,
-            #             batch_size=self._batch_size,
-            #             sampler=train_subsampler,
-            #             generator=g,
-            #             worker_init_fn=self.__seed_worker,
-            #             collate_fn=collate_gpu)
             testloader = torch.utils.data.DataLoader(
                         data,
                         batch_size=self._batch_size,
-                        sampler=test_subsampler,
                         generator=g,
                         worker_init_fn=self.__seed_worker,
                         collate_fn=collate_gpu)
 
-
-            self._model.load_state_dict(torch.load(self._presaved_models_state_dict[f"{fold}"], map_location='cpu'))
+            self._model.load_state_dict(torch.load(self._presaved_models_state_dict[fold_index], map_location='cpu'))
             self._model.to(device)
 
             # This is only used in case you want to generate data for random forest models
             #self.__model_cnn_forward(device, testloader, fold)
 
             # Perform test step
-            self.__test_model(criterion, device, testloader, fold)
+            self.__test_model(device, testloader, fold_index)
 
             # Export metrics
             metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc", "inference_time", "model_size"])
