@@ -11,11 +11,10 @@ from . import abstract_model_test
 from sklearn.model_selection import StratifiedKFold
 
 class PytorchModelTest(abstract_model_test.AbstractModelTest):
-    def __init__(self, model, presaved_models_state_dict: typing.Dict):
+    def __init__(self, model, model_specs_dict: typing.Dict):
         self._model = model
-        self._presaved_models_paths_dict = presaved_models_state_dict.get("presaved_models")
+        self._presaved_models_paths_dict = model_specs_dict.get("presaved_paths")
         self._evaluation_metrics = []
-        self._output_path = presaved_models_state_dict.get("output_path")
 
         self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_sklearn"
 
