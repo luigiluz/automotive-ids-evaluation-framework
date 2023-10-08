@@ -2,6 +2,7 @@ import torch
 import sklearn
 
 import numpy as np
+import pandas as pd
 
 from torch import nn
 
@@ -9,10 +10,11 @@ from . import conv_net_ids
 from . import sklearn_classifier
 
 class MultiStageIDS():
-    def __init__(self, cnn_model, rf_model):
+    def __init__(self, cnn_model, rf_model, device):
         super(MultiStageIDS, self).__init__()
         self._cnn_model = cnn_model
         self._rf_model = rf_model
+        self._device = device
 
         # TODO: adicionar o carregamento dos modelos ja existentes
 
@@ -29,9 +31,7 @@ class MultiStageIDS():
         # possible place for random forest model
         # TODO: replace this for the previous layer output
         rf_input = np.random.normal(0, 0.1, (64, 7))
-        x_rf = torch.from_numpy(self._rf_model.predict(rf_input)).reshape(-1, 1)
-
-        print(f"x_rf = {x_rf}")
+        x_rf = torch.from_numpy(self._rf_model.predict(rf_input)).reshape(-1, 1).to(self._device)
 
         x = self._cnn_model.binary_classification_layer(x)
         # this is the entrypoint for the first fc layer (20k+ units for regular cnn, 8291 for pruned cnn)

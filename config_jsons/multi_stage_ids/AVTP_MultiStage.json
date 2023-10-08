@@ -18,6 +18,9 @@
         "framework": "pytorch",
         "model": "CNNIDS",
         "model_name": "CNNIDS",
+        "hyperparameters": {
+            "batch_size": 64
+        },
         "presaved_paths": {
             "0":"/home/lfml/workspace/models/2023_10_01_15_00_39_pytorch/pytorch_model_CNNIDS_0",
             "1":"/home/lfml/workspace/models/2023_10_01_15_00_39_pytorch/pytorch_model_CNNIDS_1",
