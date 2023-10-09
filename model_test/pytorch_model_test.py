@@ -16,12 +16,14 @@ from torchmetrics.classification import (
     BinaryRecall,
     BinaryAUROC,
     BinaryConfusionMatrix,
+    BinaryROC,
     MulticlassAccuracy,
     MulticlassF1Score,
     MulticlassPrecision,
     MulticlassRecall,
     MulticlassAUROC,
-    MulticlassConfusionMatrix
+    MulticlassConfusionMatrix,
+    MulticlassROC
 )
 
 from custom_metrics import (
@@ -32,7 +34,7 @@ from custom_metrics import (
 class PytorchModelTest(abstract_model_test.AbstractModelTest):
     def __init__(self, model, model_specs_dict: typing.Dict):
         self._model = model
-        self._labeling_schema = model_specs_dict['feat_gen']['labeling_schema']
+        self._labeling_schema = model_specs_dict['feat_gen']['config']['labeling_schema']
         self._model_name = model_specs_dict['model_specs']['model_name']
         self._presaved_models_state_dict = model_specs_dict['presaved_paths']
         self._evaluation_metrics = []
@@ -40,6 +42,7 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
         self._number_of_outputs = model_specs_dict['model_specs']['hyperparameters']['num_outputs']
         self._forward_output_path = model_specs_dict['model_specs']['paths']['forward_output_path']
         self._confusion_matrix = None
+        self._roc_metrics = None
 
         self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_pytorch_test"
 
@@ -109,6 +112,7 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             precision_score = MulticlassPrecision(num_classes=self._number_of_outputs).to(device)
             recall_score = MulticlassRecall(num_classes=self._number_of_outputs).to(device)
             confusion_matrix_metric = MulticlassConfusionMatrix(num_classes=self._number_of_outputs).to(device)
+            roc_metric = MulticlassROC(num_classes=self._number_of_outputs).to(device)
         else:
             accuracy_metric = BinaryAccuracy().to(device)
             f1_score_metric = BinaryF1Score().to(device)
@@ -116,6 +120,7 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             precision_score = BinaryPrecision().to(device)
             recall_score = BinaryRecall().to(device)
             confusion_matrix_metric = BinaryConfusionMatrix().to(device)
+            roc_metric = BinaryROC().to(device)
 
         y_pred = torch.tensor([]).to(device)
         y_true = torch.tensor([]).to(device)
@@ -150,9 +155,21 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             recall = recall_score.compute().cpu().numpy()
 
             # Reshape y_pred and y_true to compute confusion matrix
-            y_pred = torch.argmax(y_pred, dim=1)
-            y_true = torch.argmax(y_true, dim=1)
-            confusion_matrix = confusion_matrix_metric(y_pred, y_true)
+            # TODO: Esse reshape deve ocorrer apenas se for necessário
+            y_pred_conf_matrix = y_pred
+            y_true_conf_matrix = y_true
+            if self._number_of_outputs == 6:
+                y_pred_conf_matrix = torch.argmax(y_pred, dim=1)
+                y_true_conf_matrix = torch.argmax(y_true, dim=1)
+            confusion_matrix = confusion_matrix_metric(y_pred_conf_matrix, y_true_conf_matrix)
+
+            # TODO: encontrar uma forma melhor de fazer esse reshape
+            y_true_roc = y_true.to(torch.int32)
+            if self._number_of_outputs == 6:
+                y_true_roc = torch.argmax(y_true, dim=1).to(torch.int32)
+            fpr, tpr, thresholds = roc_metric(y_pred, y_true_roc)
+
+            roc_metrics = torch.cat((fpr.reshape(-1, 1), tpr.reshape(-1, 1), thresholds.reshape(-1, 1)), dim=1)
 
             # TODO: Get the data format using the data
             dummy_input = torch.randn(1, 1, 44, 116, dtype=torch.float).to(device)
@@ -168,6 +185,7 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             # Append metrics on list
             self._evaluation_metrics.append([fold, acc, prec, recall, f1, roc_auc, inference_time, model_size])
             self._confusion_matrix = confusion_matrix.cpu().numpy()
+            self._roc_metrics = roc_metrics.cpu().numpy()
 
 
     def execute(self, data):
@@ -206,3 +224,5 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             metrics_df.to_csv(f"{self._metrics_output_path}/test_metrics_{self._labeling_schema}_{self._model_name}_BS{self._batch_size}.csv")
             confusion_matrix_df = pd.DataFrame(self._confusion_matrix)
             confusion_matrix_df.to_csv(f"{self._metrics_output_path}/confusion_matrix_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+            roc_metrics_df = pd.DataFrame(self._roc_metrics, columns=["fpr", "tpr", "thresholds"])
+            roc_metrics_df.to_csv(f"{self._metrics_output_path}/roc_metrics_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
