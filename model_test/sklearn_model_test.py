@@ -15,6 +15,11 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
 
+from custom_metrics import (
+    timing,
+    storage
+)
+
 class SklearnModelTest(abstract_model_test.AbstractModelTest):
     def __init__(self, model, model_specs_dict: typing.Dict):
         self._model = model

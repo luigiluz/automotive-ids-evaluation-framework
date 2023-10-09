@@ -42,7 +42,7 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         self._evaluation_metrics = []
         self._train_validation_losses = []
 
-        self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_pytorch"
+        self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_pytorch_train"
         # TODO: Get this from json config file
         art_path = "/home/lfml/workspace/artifacts"
         self._artifacts_path = f"{art_path}/{self._run_id}"
