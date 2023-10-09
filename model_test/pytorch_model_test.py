@@ -15,25 +15,43 @@ from torchmetrics.classification import (
     BinaryPrecision,
     BinaryRecall,
     BinaryAUROC,
+    BinaryConfusionMatrix,
     MulticlassAccuracy,
     MulticlassF1Score,
     MulticlassPrecision,
     MulticlassRecall,
     MulticlassAUROC,
+    MulticlassConfusionMatrix
+)
+
+from custom_metrics import (
+    timing,
+    storage
 )
 
 class PytorchModelTest(abstract_model_test.AbstractModelTest):
     def __init__(self, model, model_specs_dict: typing.Dict):
         self._model = model
+        self._labeling_schema = model_specs_dict['feat_gen']['labeling_schema']
+        self._model_name = model_specs_dict['model_specs']['model_name']
         self._presaved_models_state_dict = model_specs_dict['presaved_paths']
         self._evaluation_metrics = []
         self._batch_size = model_specs_dict['model_specs']['hyperparameters']['batch_size']
         self._number_of_outputs = model_specs_dict['model_specs']['hyperparameters']['num_outputs']
         self._forward_output_path = model_specs_dict['model_specs']['paths']['forward_output_path']
+        self._confusion_matrix = None
 
-        self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_pytorch"
+        self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_pytorch_test"
 
-        self._metrics_output_path = f"{model_specs_dict['model_specs']['paths']['metrics_output_path']}/{self._run_id}"
+        # TODO: Get this from json config file
+        art_path = "/home/lfml/workspace/artifacts"
+        self._artifacts_path = f"{art_path}/{self._run_id}"
+
+        if not os.path.exists(self._artifacts_path):
+            os.makedirs(self._artifacts_path)
+            print("Artifacts output directory created successfully")
+
+        self._metrics_output_path = f"{self._artifacts_path}/metrics"
         if not os.path.exists(self._metrics_output_path):
             os.makedirs(self._metrics_output_path)
             print("Metrics output directory created successfully")
@@ -90,12 +108,17 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             auc_roc_metric = MulticlassAUROC(num_classes=self._number_of_outputs).to(device)
             precision_score = MulticlassPrecision(num_classes=self._number_of_outputs).to(device)
             recall_score = MulticlassRecall(num_classes=self._number_of_outputs).to(device)
+            confusion_matrix_metric = MulticlassConfusionMatrix(num_classes=self._number_of_outputs).to(device)
         else:
             accuracy_metric = BinaryAccuracy().to(device)
             f1_score_metric = BinaryF1Score().to(device)
             auc_roc_metric = BinaryAUROC().to(device)
             precision_score = BinaryPrecision().to(device)
             recall_score = BinaryRecall().to(device)
+            confusion_matrix_metric = BinaryConfusionMatrix().to(device)
+
+        y_pred = torch.tensor([]).to(device)
+        y_true = torch.tensor([]).to(device)
 
         with torch.no_grad():
             for data, target in testloader:
@@ -105,6 +128,9 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
                 target = target.float()
 
                 output = self._model(data)
+
+                y_pred = torch.cat((y_pred, output.detach()))
+                y_true = torch.cat((y_true, target))
 
                 accuracy_metric.update(output.detach(), target)
                 f1_score_metric.update(output.detach(), target)
@@ -123,6 +149,11 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             prec = precision_score.compute().cpu().numpy()
             recall = recall_score.compute().cpu().numpy()
 
+            # Reshape y_pred and y_true to compute confusion matrix
+            y_pred = torch.argmax(y_pred, dim=1)
+            y_true = torch.argmax(y_true, dim=1)
+            confusion_matrix = confusion_matrix_metric(y_pred, y_true)
+
             # TODO: Get the data format using the data
             dummy_input = torch.randn(1, 1, 44, 116, dtype=torch.float).to(device)
             if device.type == "cpu":
@@ -136,19 +167,20 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
 
             # Append metrics on list
             self._evaluation_metrics.append([fold, acc, prec, recall, f1, roc_auc, inference_time, model_size])
+            self._confusion_matrix = confusion_matrix.cpu().numpy()
 
 
     def execute(self, data):
         def collate_gpu(batch):
             x, t = torch.utils.data.dataloader.default_collate(batch)
-            return x.to(device="cuda:0"), t.to(device="cuda:0")
+            return x.to(device="cuda:1"), t.to(device="cuda:1")
         # Reset all seed to ensure reproducibility
         self.__seed_all(0)
         g = torch.Generator()
         g.manual_seed(42)
 
         # Use gpu to train as preference
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
         for fold_index in self._presaved_models_state_dict.keys():
             print('------------fold no---------{}----------------------'.format(fold_index))
@@ -171,4 +203,6 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
 
             # Export metrics
             metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc", "inference_time", "model_size"])
-            metrics_df.to_csv(f"{self._metrics_output_path}/test_metrics_{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
+            metrics_df.to_csv(f"{self._metrics_output_path}/test_metrics_{self._labeling_schema}_{self._model_name}_BS{self._batch_size}.csv")
+            confusion_matrix_df = pd.DataFrame(self._confusion_matrix)
+            confusion_matrix_df.to_csv(f"{self._metrics_output_path}/confusion_matrix_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
