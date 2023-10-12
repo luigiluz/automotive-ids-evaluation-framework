@@ -41,6 +41,8 @@ class PrunedConvNetIDS(nn.Module):
         x = self.feature_extraction_layer(x)
         x = torch.flatten(x, 1)
 
+        return x
+
     def fc1_forward(self, x):
         x = self.feature_extraction_layer(x)
         x = torch.flatten(x, 1)
