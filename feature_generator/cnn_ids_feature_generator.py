@@ -15,6 +15,7 @@ DEFAULT_WINDOW_SLIDE = 1
 AVTP_PACKETS_LENGHT = 438
 DEFAULT_LABELING_SCHEMA = "AVTP_Intrusion_dataset"
 DEFAULT_DATASET = "AVTP_Intrusion"
+DEFAULT_SUM_X = False
 
 LABELING_SCHEMA_FACTORY = {
     "AVTP_Intrusion_dataset": labeling_schemas.avtp_intrusion_labeling_schema,
@@ -29,13 +30,14 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         self._window_slide = config.get('window_slide', DEFAULT_WINDOW_SLIDE)
         self._number_of_columns = self._number_of_bytes * 2
         self._labeling_schema = config.get('labeling_schema', DEFAULT_LABELING_SCHEMA)
+        self._sum_x = config.get('sum_x', DEFAULT_SUM_X)
         self._data_suffix = config.get('suffix')
 
         self._multiclass = config.get('multiclass', False)
 
         self._dataset = config.get('dataset', DEFAULT_DATASET)
 
-        self._output_path_suffix = f"{self._labeling_schema}_Wsize_{self._window_size}_Cols_{self._number_of_columns}_Wslide_{self._window_slide}_MC_{self._multiclass}"
+        self._output_path_suffix = f"{self._labeling_schema}_Wsize_{self._window_size}_Cols_{self._number_of_columns}_Wslide_{self._window_slide}_MC_{self._multiclass}_sumX_{self._sum_x}"
 
         self._filter_avtp_packets = True if (self._labeling_schema) == "AVTP_Intrusion_dataset" else False
         print(f"filter_avtp_packets = {self._filter_avtp_packets}")
@@ -93,7 +95,10 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         raw_injected_only_packets = self.__read_raw_packets(paths_dictionary['injected_only_frame_path'])
         injected_only_packets_array = self.__convert_raw_packets(raw_injected_only_packets)
 
-        X = np.empty(shape=(0, self._window_size, self._number_of_columns), dtype='uint8')
+        if self._sum_x:
+            X = np.empty(shape=(0, self._number_of_columns), dtype='uint8')
+        else:
+            X = np.empty(shape=(0, self._window_size, self._number_of_columns), dtype='uint8')
         y = np.array([], dtype='uint8')
 
         for injected_raw_packets_path in paths_dictionary['injected_data_paths']:
@@ -275,6 +280,8 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
 
             # Get a sequence of data for x
             seq_X = x_data[start_ix:end_ix]
+            if self._sum_x:
+                seq_X = np.sum(seq_X, axis=0)
 
             # Get a squence of data for y
             tmp_seq_y = y_data[start_ix : end_ix]
