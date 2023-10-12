@@ -69,6 +69,7 @@ def main():
     print("> Loading features...")
     selected_feature_generator = AVAILABLE_FEATURE_GENERATORS[feature_generator_name](feature_generator_config)
     data = selected_feature_generator.load_features(feature_generator_load_paths)
+    print(f"DEBUG: len(data) = {len(data)}")
 
     print("> Creating model...")
     if framework == "pytorch":

@@ -86,7 +86,18 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
     def __model_cnn_forward(self, device, testloader, fold):
         self._model.eval()
 
-        store_tensor = torch.Tensor([]).cpu()
+        print(">> Executing forward to export")
+
+        BATCH_SIZE = 64
+        N_OF_ENTRIES = len(testloader) * BATCH_SIZE
+        # Number of input features for the flatten layer
+        N_OF_FEATURES = 64
+
+        store_tensor = torch.zeros((N_OF_ENTRIES, N_OF_FEATURES), dtype=torch.float32)
+        print(f"store_tensor.shape = {store_tensor.shape}")
+
+        print(">> Preallocated output tensor")
+        store_tensor_index = 0
 
         with torch.no_grad():
             for data, target in testloader:
@@ -95,11 +106,21 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
                     target = target.reshape(-1, 1)
                 target = target.float()
 
-                output = self._model.cnn_forward(data)
+                output = self._model.fc1_forward(data)
+                output = output.detach()
 
-                store_tensor = torch.cat((store_tensor, output.cpu()), 0).cpu()
+                start_index = store_tensor_index
+                end_index = store_tensor_index + BATCH_SIZE
+                for index in range(0, BATCH_SIZE):
+                    # isso aqui pode ta copiando a referencia
+                    # e mantendo os valores sempres iguais
+                    store_tensor[start_index + index] = output[index].clone()
 
-        np.savez(f"{self._forward_output_path}/fold_{fold}_cnn_output.npz", store_tensor.numpy())
+                store_tensor_index = store_tensor_index + BATCH_SIZE
+
+        store_tensor = store_tensor.cpu().numpy()
+
+        np.savez(f"{self._forward_output_path}/sample_model_fold_{fold}_fc1_forward.npz", store_tensor)
 
 
     def __test_model(self, device, testloader, fold):
@@ -191,14 +212,14 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
     def execute(self, data):
         def collate_gpu(batch):
             x, t = torch.utils.data.dataloader.default_collate(batch)
-            return x.to(device="cuda:1"), t.to(device="cuda:1")
+            return x.to(device="cuda:0"), t.to(device="cuda:0")
         # Reset all seed to ensure reproducibility
         self.__seed_all(0)
         g = torch.Generator()
         g.manual_seed(42)
 
         # Use gpu to train as preference
-        device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         for fold_index in self._presaved_models_state_dict.keys():
             print('------------fold no---------{}----------------------'.format(fold_index))
@@ -210,14 +231,16 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
                         worker_init_fn=self.__seed_worker,
                         collate_fn=collate_gpu)
 
+            print(f"len(testloader) = {len(testloader)}")
+
             self._model.load_state_dict(torch.load(self._presaved_models_state_dict[fold_index], map_location='cpu'))
             self._model.to(device)
 
             # This is only used in case you want to generate data for random forest models
-            #self.__model_cnn_forward(device, testloader, fold)
+            self.__model_cnn_forward(device, testloader, fold_index)
 
             # Perform test step
-            self.__test_model(device, testloader, fold_index)
+            # self.__test_model(device, testloader, fold_index)
 
             # Export metrics
             metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc", "inference_time", "model_size"])
