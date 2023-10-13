@@ -129,7 +129,9 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
     def load_features(self, paths_dictionary: typing.Dict):
         X = np.load(paths_dictionary['X_path'])
         X = X.f.arr_0
-        X = X.reshape((X.shape[0], -1, self._window_size, self._number_of_columns))
+        if self._sum_x == False:
+            X = X.reshape((X.shape[0], -1, self._window_size, self._number_of_columns))
+        print(f"shape X = {X.shape}")
 
         if (self._dataset == "TOW_IDS_dataset"):
             y = pd.read_csv(paths_dictionary['y_path'])
@@ -149,6 +151,8 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         else:
             y = np.load(paths_dictionary['y_path'])
             y = y.f.arr_0
+
+        print(f"shape Y = {y.shape}")
 
         if (self._multiclass):
             y = y.reshape(-1, 1)
