@@ -6,13 +6,13 @@
             "window_slide": 1,
             "number_of_bytes": 58,
             "multiclass": false,
-            "labeling_schema": "AVTP_Intrusion_dataset",
-            "dataset": "AVTP_Intrusion_dataset",
+            "labeling_schema": "TOW_IDS_dataset_multi_class",
+            "dataset": "TOW_IDS_dataset",
             "sum_x": true
         },
         "load_paths": {
-            "X_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/X_train_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.npz",
-            "y_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/y_train_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.npz"
+            "X_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/processed/1210_X_train_TOW_IDS_dataset_one_class_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.npz",
+            "y_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/processed/1210_y_train_TOW_IDS_dataset_one_class_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.csv"
         }
     },
     "model_specs": {
@@ -22,9 +22,16 @@
         "model_params": {
             "n_estimators": 100,
             "max_depth": 4,
-            "max_features": 3,
+            "max_features": 10,
             "bootstrap": true,
             "random_state": 42
+        },
+        "hyperparams_grid": {
+            "clf__n_estimators": [50, 100, 200],
+            "clf__max_depth": [4, 6, 10],
+            "clf__max_features": [3, 5, 7],
+            "clf__bootstrap": [true],
+            "clf__random_state": [42]
         },
         "paths": {
             "metrics_output_path":"/home/lfml/workspace/metrics",

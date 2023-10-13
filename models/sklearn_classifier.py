@@ -1,6 +1,8 @@
 import typing
 
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 MODELS_FACTORY = {
     "RandomForestClassifier": RandomForestClassifier
@@ -15,7 +17,12 @@ class SklearnClassifier():
         if self._model_name not in MODELS_FACTORY:
             raise KeyError(f"Selected model {self._model_name} is NOT available!")
 
-        self._model = MODELS_FACTORY[self._model_name](**self._model_params)
+        pipeline_steps = [
+            ('scaler', StandardScaler()),
+            ('clf', MODELS_FACTORY[self._model_name](**self._model_params))
+        ]
+
+        self._model = Pipeline(pipeline_steps)
 
     def reset(self):
         self._model = MODELS_FACTORY[self._model_name](**self._model_params)

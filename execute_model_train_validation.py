@@ -76,10 +76,9 @@ def main():
             model = AVAILABLE_IDS[model_name](number_of_outputs=num_outputs)
         else:
             model = AVAILABLE_IDS[model_name]()
+        print(f">> {model_name} was created with {num_outputs} outputs")
     elif framework == "sklearn":
         model = AVAILABLE_IDS[model_name](model_specs_dict)
-
-    print(f"> {model_name} was created with {num_outputs} outputs")
 
     print("> Initializing model training and evaluation...")
 

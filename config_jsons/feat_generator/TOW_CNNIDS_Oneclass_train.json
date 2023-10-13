@@ -6,7 +6,9 @@
         "number_of_bytes": 58,
         "multiclass": false,
         "labeling_schema": "TOW_IDS_dataset_one_class",
-        "dataset": "TOW_IDS_dataset"
+        "dataset": "TOW_IDS_dataset",
+        "suffix": "train",
+        "sum_x": true
     },
     "paths": {
         "training_packets_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/Automotive_Ethernet_with_Attack_original_10_17_19_50_training.pcap",
