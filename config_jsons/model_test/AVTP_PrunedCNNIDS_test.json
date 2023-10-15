@@ -10,8 +10,8 @@
             "dataset": "AVTP_Intrusion_dataset"
         },
         "load_paths": {
-            "X_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/X_test_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False.npz",
-            "y_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/y_test_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False.npz"
+            "X_path": "/home/lfml/workspace/sample_inputs/sample_input_network_traffic_imaging.npz",
+            "y_path": "/home/lfml/workspace/sample_inputs/sample_label_one_class_avtp_rounded.npz"
         }
     },
     "model_specs": {
@@ -30,13 +30,9 @@
             "metrics_output_path":"/home/lfml/workspace/metrics",
             "models_output_path":"/home/lfml/workspace/models",
             "forward_output_path":"/home/lfml/workspace/forward"
+        },
+        "presaved_paths": {
+            "entire": "/home/lfml/workspace/final_trained_models/avtp_dataset/2023_10_15_00_57_26_AVTP_PrunedCNN_Entire/models/AVTP_pytorch_model_PrunedCNNIDS_entire_dataset"
         }
-    },
-    "presaved_paths": {
-        "0":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok_AVTP_PCNN_final/models/AVTP_pytorch_model_PrunedCNNIDS_0",
-        "1":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok_AVTP_PCNN_final/models/AVTP_pytorch_model_PrunedCNNIDS_1",
-        "2":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok_AVTP_PCNN_final/models/AVTP_pytorch_model_PrunedCNNIDS_2",
-        "3":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok_AVTP_PCNN_final/models/AVTP_pytorch_model_PrunedCNNIDS_3",
-        "4":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok_AVTP_PCNN_final/models/AVTP_pytorch_model_PrunedCNNIDS_4"
     }
 }

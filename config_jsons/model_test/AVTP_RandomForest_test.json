@@ -7,11 +7,12 @@
             "number_of_bytes": 58,
             "multiclass": false,
             "labeling_schema": "AVTP_Intrusion_dataset",
-            "dataset": "AVTP_Intrusion_dataset"
+            "dataset": "AVTP_Intrusion_dataset",
+            "sum_x": true
         },
         "load_paths": {
-            "X_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/X_test_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.npz",
-            "y_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed/y_test_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.npz"
+            "X_path": "/home/lfml/workspace/sample_inputs/sample_input_sum_aggregated.npz",
+            "y_path": "/home/lfml/workspace/sample_inputs/sample_label_one_class_avtp_rounded.npz"
         }
     },
     "model_specs": {
@@ -28,13 +29,10 @@
         "paths": {
             "metrics_output_path":"/home/lfml/workspace/metrics",
             "models_output_path":"/home/lfml/workspace/models"
+        },
+        "presaved_paths": {
+            "entire": "/home/lfml/workspace/final_trained_models/avtp_dataset/2023_10_15_01_22_07_sklearn_train_val_AVTP_RF_entire/models/AVTP_RandomForestClassifier_entire_dataset_.pkl"
         }
-    },
-    "presaved_paths": {
-        "0": "/home/lfml/workspace/artifacts/2023_10_12_17_54_49_sklearn_ok_100estim_AVTP_RF_final/models/AVTP_RandomForestClassifier_fold_0.pkl",
-        "1": "/home/lfml/workspace/artifacts/2023_10_12_17_54_49_sklearn_ok_100estim_AVTP_RF_final/models/AVTP_RandomForestClassifier_fold_1.pkl",
-        "2": "/home/lfml/workspace/artifacts/2023_10_12_17_54_49_sklearn_ok_100estim_AVTP_RF_final/models/AVTP_RandomForestClassifier_fold_2.pkl",
-        "3": "/home/lfml/workspace/artifacts/2023_10_12_17_54_49_sklearn_ok_100estim_AVTP_RF_final/models/AVTP_RandomForestClassifier_fold_3.pkl",
-        "4": "/home/lfml/workspace/artifacts/2023_10_12_17_54_49_sklearn_ok_100estim_AVTP_RF_final/models/AVTP_RandomForestClassifier_fold_4.pkl"
     }
 }
+

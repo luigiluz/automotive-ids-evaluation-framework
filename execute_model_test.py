@@ -83,7 +83,7 @@ def main():
             else:
                 model = AVAILABLE_IDS[model_name]()
         elif model_name in ["MultiStageIDS"]:
-            model = AVAILABLE_IDS[model_name](ensemble_inputs=num_ensemble_inputs)
+            model = AVAILABLE_IDS[model_name](ensemble_inputs=num_ensemble_inputs, number_of_outputs=num_outputs)
         print(f">> {model_name} was created with {num_outputs} outputs")
     elif framework == "sklearn":
         model = AVAILABLE_IDS[model_name](model_specs_dict)

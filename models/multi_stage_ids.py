@@ -12,9 +12,10 @@ from . import pruned_conv_net_ids
 from . import sklearn_classifier
 
 class MultiStageIDS(nn.Module):
-    def __init__(self, ensemble_inputs=2):
+    def __init__(self, ensemble_inputs=2, number_of_outputs=1):
         super(MultiStageIDS, self).__init__()
-        self._pruned_cnn_model = None
+        self._num_outputs = number_of_outputs
+        self._pruned_cnn_model = pruned_conv_net_ids.PrunedConvNetIDS(self._num_outputs)
         self._rf_model = None
 
         self.mlp_ensemble_layer = nn.Sequential(
@@ -30,7 +31,6 @@ class MultiStageIDS(nn.Module):
         self._rf_model = pickle.load(open(rf_path, 'rb'))
 
         ## Load second stage model
-        self._pruned_cnn_model = pruned_conv_net_ids.PrunedConvNetIDS(number_of_outputs=6)
         self._pruned_cnn_model.load_state_dict(torch.load(cnn_path, map_location='cpu'))
 
     def forward_first_stage(self, x):
