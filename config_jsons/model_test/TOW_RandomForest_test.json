@@ -6,8 +6,8 @@
             "window_slide": 1,
             "number_of_bytes": 58,
             "multiclass": false,
-            "labeling_schema": "AVTP_Intrusion_dataset",
-            "dataset": "AVTP_Intrusion_dataset",
+            "labeling_schema": "TOW_IDS_dataset_one_class",
+            "dataset": "TOW_IDS_dataset",
             "sum_x": true
         },
         "load_paths": {
