@@ -143,6 +143,7 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             confusion_matrix_metric = BinaryConfusionMatrix().to(device)
             roc_metric = BinaryROC().to(device)
 
+        # TODO: alterar para prealocar y_pred e y_true pra exeutar mais rapido
         y_pred = torch.tensor([]).to(device)
         y_true = torch.tensor([]).to(device)
 
@@ -201,10 +202,10 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             inference_time = timing_func(self._model, dummy_input)
 
             # TODO: Change this to be only used in case model is random forest
-            model_size = storage.pytorch_compute_model_size_mb(self._model)
+            # model_size = storage.pytorch_compute_model_size_mb(self._model)
 
             # Append metrics on list
-            self._evaluation_metrics.append([fold, acc, prec, recall, f1, roc_auc, inference_time, model_size])
+            self._evaluation_metrics.append([fold, acc, prec, recall, f1, roc_auc, inference_time])
             self._confusion_matrix = confusion_matrix.cpu().numpy()
             self._roc_metrics = roc_metrics.cpu().numpy()
 
@@ -237,13 +238,13 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             self._model.to(device)
 
             # This is only used in case you want to generate data for random forest models
-            self.__model_cnn_forward(device, testloader, fold_index)
+            # self.__model_cnn_forward(device, testloader, fold_index)
 
             # Perform test step
-            # self.__test_model(device, testloader, fold_index)
+            self.__test_model(device, testloader, fold_index)
 
             # Export metrics
-            metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc", "inference_time", "model_size"])
+            metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc", "inference_time"])
             metrics_df.to_csv(f"{self._metrics_output_path}/test_metrics_{self._labeling_schema}_{self._model_name}_BS{self._batch_size}.csv")
             confusion_matrix_df = pd.DataFrame(self._confusion_matrix)
             confusion_matrix_df.to_csv(f"{self._metrics_output_path}/confusion_matrix_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")

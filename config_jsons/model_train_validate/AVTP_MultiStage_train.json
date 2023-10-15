@@ -15,7 +15,18 @@
         }
     },
     "model_specs": {
-        "first_stage": {
+        "framework": "pytorch",
+        "model": "MultiStageIDS",
+        "model_name": "MultiStageIDS",
+        "criterion": "binary-cross-entropy",
+        "hyperparameters": {
+            "batch_size": 64,
+            "learning_rate": 0.001,
+            "num_epochs": 5,
+            "early_stopping_patience": 3,
+            "ensemble_inputs": 2
+        },
+        "second_stage": {
             "framework": "pytorch",
             "model": "PrunedCNNIDS",
             "model_name": "PrunedCNNIDS",
@@ -30,7 +41,7 @@
                 "4":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok_AVTP_PCNN_final/models/AVTP_pytorch_model_PrunedCNNIDS_4"
             }
         },
-        "second_stage": {
+        "first_stage": {
             "framework": "sklearn",
             "model": "SklearnClassifier",
             "model_name": "RandomForestClassifier",
@@ -47,18 +58,6 @@
                 "2": "/home/lfml/workspace/artifacts/2023_10_12_17_54_49_sklearn_ok_100estim_AVTP_RF_final/models/AVTP_RandomForestClassifier_fold_2.pkl",
                 "3": "/home/lfml/workspace/artifacts/2023_10_12_17_54_49_sklearn_ok_100estim_AVTP_RF_final/models/AVTP_RandomForestClassifier_fold_3.pkl",
                 "4": "/home/lfml/workspace/artifacts/2023_10_12_17_54_49_sklearn_ok_100estim_AVTP_RF_final/models/AVTP_RandomForestClassifier_fold_4.pkl"
-            }
-        },
-        "ensemble_stage": {
-            "framework": "pytorch",
-            "model": "MultiStageIDS",
-            "model_name": "MultiStageIDS",
-            "hyperparameters": {
-                "batch_size": 64,
-                "learning_rate": 0.001,
-                "num_epochs": 1,
-                "early_stopping_patience": 5,
-                "num_ensemble_inputs": 2
             }
         }
     }
