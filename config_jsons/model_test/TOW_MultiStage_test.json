@@ -1,0 +1,60 @@
+{
+    "feat_gen": {
+        "feature_generator": "CNNIDSFeatureGenerator",
+        "config": {
+            "window_size": 44,
+            "window_slide": 1,
+            "number_of_bytes": 58,
+            "multiclass": false,
+            "labeling_schema": "AVTP_Intrusion_dataset",
+            "dataset": "AVTP_Intrusion_dataset"
+        },
+        "load_paths": {
+            "X_path": "/home/lfml/workspace/sample_inputs/sample_input_network_traffic_imaging.npz",
+            "y_path": "/home/lfml/workspace/sample_inputs/sample_label_one_class_tow.csv"
+        }
+    },
+    "model_specs": {
+        "framework": "pytorch",
+        "model": "MultiStageIDS",
+        "model_name": "MultiStageIDS",
+        "criterion": "binary-cross-entropy",
+        "hyperparameters": {
+            "batch_size": 1,
+            "learning_rate": 0.001,
+            "num_epochs": 5,
+            "early_stopping_patience": 3,
+            "ensemble_inputs": 7,
+            "num_outputs": 6
+        },
+        "presaved_paths": {
+            "entire": "/home/lfml/workspace/final_trained_models/tow_dataset/2023_10_15_04_39_54_pytorch_train_TOW_MultiStage_entire/models/pytorch_model_MultiStageIDS_entire_dataset"
+        },
+        "second_stage": {
+            "framework": "pytorch",
+            "model": "PrunedCNNIDS",
+            "model_name": "PrunedCNNIDS",
+            "hyperparameters": {
+                "batch_size": 64
+            },
+            "presaved_paths": {
+                "entire":"/home/lfml/workspace/final_trained_models/tow_dataset/2023_10_15_02_04_21_pytorch_train_TOW_PrunedCNN_entire/models/TOW_pytorch_model_PrunedCNNIDS_entire_dataset"
+            }
+        },
+        "first_stage": {
+            "framework": "sklearn",
+            "model": "SklearnClassifier",
+            "model_name": "RandomForestClassifier",
+            "model_params": {
+                "n_estimators": 500,
+                "max_depth": 4,
+                "max_features": 3,
+                "bootstrap": true,
+                "random_state": 42
+            },
+            "presaved_paths": {
+                "entire": "/home/lfml/workspace/final_trained_models/tow_dataset/2023_10_15_03_04_22_sklearn_train_val_TOW_RF_entire/models/TOW_RandomForestClassifier_entire_dataset_.pkl"
+            }
+        }
+    }
+}
