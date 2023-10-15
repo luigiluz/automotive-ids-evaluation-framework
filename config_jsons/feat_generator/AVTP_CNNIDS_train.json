@@ -7,12 +7,12 @@
         "multiclass": false,
         "labeling_schema": "AVTP_Intrusion_dataset",
         "dataset": "AVTP_Intrusion_dataset",
-        "suffix": "train",
+        "suffix": "test",
         "sum_x": true
     },
     "paths": {
         "injected_only_frame_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/raw/single-MPEG-frame.pcap",
-        "injected_data_paths" : ["/home/lfml/workspace/datasets/avtp-intrusion-dataset/raw/indoors_01_injected.pcap", "/home/lfml/workspace/datasets/avtp-intrusion-dataset/raw/indoors_02_injected.pcap"],
+        "injected_data_paths" : ["/home/lfml/workspace/datasets/avtp-intrusion-dataset/raw/driving_01_injected.pcap", "/home/lfml/workspace/datasets/avtp-intrusion-dataset/raw/driving_02_injected.pcap"],
         "output_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/processed"
     },
     "load_paths": {
