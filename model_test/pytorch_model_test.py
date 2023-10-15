@@ -36,11 +36,12 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
         self._model = model
         self._labeling_schema = model_specs_dict['feat_gen']['config']['labeling_schema']
         self._model_name = model_specs_dict['model_specs']['model_name']
-        self._presaved_models_state_dict = model_specs_dict['presaved_paths']
+        self._presaved_models_state_dict = model_specs_dict['model_specs']['presaved_paths']
+        self._model_specs_dict = model_specs_dict['model_specs']
         self._evaluation_metrics = []
         self._batch_size = model_specs_dict['model_specs']['hyperparameters']['batch_size']
-        self._number_of_outputs = model_specs_dict['model_specs']['hyperparameters']['num_outputs']
-        self._forward_output_path = model_specs_dict['model_specs']['paths']['forward_output_path']
+        self._number_of_outputs = model_specs_dict['model_specs']['hyperparameters'].get('num_outputs', -1)
+        # self._forward_output_path = model_specs_dict['model_specs']['paths']['forward_output_path']
         self._confusion_matrix = None
         self._roc_metrics = None
 
@@ -88,12 +89,10 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
 
         print(">> Executing forward to export")
 
-        BATCH_SIZE = 64
-        N_OF_ENTRIES = len(testloader) * BATCH_SIZE
+        N_OF_ENTRIES = len(testloader) * self._batch_size
         # Number of input features for the flatten layer
-        N_OF_FEATURES = 64
 
-        store_tensor = torch.zeros((N_OF_ENTRIES, N_OF_FEATURES), dtype=torch.float32)
+        # store_tensor = torch.zeros((N_OF_ENTRIES, N_OF_FEATURES), dtype=torch.float32)
         print(f"store_tensor.shape = {store_tensor.shape}")
 
         print(">> Preallocated output tensor")
@@ -110,13 +109,13 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
                 output = output.detach()
 
                 start_index = store_tensor_index
-                end_index = store_tensor_index + BATCH_SIZE
-                for index in range(0, BATCH_SIZE):
+                end_index = store_tensor_index + self._batch_size
+                for index in range(0, self._batch_size):
                     # isso aqui pode ta copiando a referencia
                     # e mantendo os valores sempres iguais
                     store_tensor[start_index + index] = output[index].clone()
 
-                store_tensor_index = store_tensor_index + BATCH_SIZE
+                store_tensor_index = store_tensor_index + self._batch_size
 
         store_tensor = store_tensor.cpu().numpy()
 
@@ -221,15 +220,15 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
     def execute(self, data):
         def collate_gpu(batch):
             x, t = torch.utils.data.dataloader.default_collate(batch)
-            return x.to(device="cuda:1"), t.to(device="cuda:1")
+            return x.to(device="cuda:0"), t.to(device="cuda:0")
         # Reset all seed to ensure reproducibility
         self.__seed_all(0)
         g = torch.Generator()
         g.manual_seed(42)
 
         # Use gpu to train as preference
-        device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-        fold = None
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        fold_index = None
 
         # for fold_index in self._presaved_models_state_dict.keys():
         print('------------fold no---------{}----------------------'.format(fold_index))
@@ -243,7 +242,7 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
 
         print(f"len(testloader) = {len(testloader)}")
 
-        self._model.load_state_dict(torch.load(self._presaved_models_state_dict[fold_index], map_location='cpu'))
+        self._model.load_state_dict(torch.load(self._presaved_models_state_dict["entire"], map_location='cpu'))
 
         if (self._model_name == "MultiStageIDS"):
             random_forest_path = self._model_specs_dict["first_stage"]["presaved_paths"]["entire"]

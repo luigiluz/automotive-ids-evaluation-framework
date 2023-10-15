@@ -14,6 +14,8 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_curve
 
 from custom_metrics import (
     timing,
@@ -23,12 +25,22 @@ from custom_metrics import (
 class SklearnModelTest(abstract_model_test.AbstractModelTest):
     def __init__(self, model, model_specs_dict: typing.Dict):
         self._model = model
-        self._presaved_models_paths_dict = model_specs_dict["presaved_paths"]
-        self._evaluation_metrics = []
+        self._model_name = model_specs_dict['model_specs']['model_name']
+        self._presaved_models_paths_dict = model_specs_dict["model_specs"]["presaved_paths"]
+        self._metrics_list = []
+        self._labeling_schema = model_specs_dict['feat_gen']['config']['labeling_schema']
 
-        self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_sklearn"
+        self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_sklearn_test"
 
-        self._metrics_output_path = f"{model_specs_dict['model_specs']['paths']['metrics_output_path']}/{self._run_id}"
+        # TODO: Get this from json config file
+        art_path = "/home/lfml/workspace/artifacts"
+        self._artifacts_path = f"{art_path}/{self._run_id}"
+
+        if not os.path.exists(self._artifacts_path):
+            os.makedirs(self._artifacts_path)
+            print("Artifacts output directory created successfully")
+
+        self._metrics_output_path = f"{self._artifacts_path}/metrics"
         if not os.path.exists(self._metrics_output_path):
             os.makedirs(self._metrics_output_path)
             print("Metrics output directory created successfully")
@@ -57,9 +69,16 @@ class SklearnModelTest(abstract_model_test.AbstractModelTest):
         inference_time = timing.sklearn_inference_time(self._model, dummy_data)
 
         # TODO: Change this to be only used in case model is random forest
-        model_size = storage.sklearn_random_forest_compute_model_size_mb(self._model._model)
+        # model_size = storage.sklearn_random_forest_compute_model_size_mb(self._model._model)
 
-        return [acc, f1, prec, recall, roc_auc, inference_time, model_size]
+        conf_matrix = confusion_matrix(y_true, y_pred)
+
+        fpr, tpr, thresholds = roc_curve(y_true, y_pred_prob[:, 1])
+
+        self._confusion_matrix = conf_matrix
+        self._roc_metrics = np.concatenate((fpr.reshape(-1, 1), tpr.reshape(-1, 1), thresholds.reshape(-1, 1)), axis=1)
+
+        return [acc, f1, prec, recall, roc_auc, inference_time]
 
 
     def execute(self, data):
@@ -79,12 +98,16 @@ class SklearnModelTest(abstract_model_test.AbstractModelTest):
 
             # Get the train metrics
             test_metrics = self.__validate_model(X_test, y_test)
-            test_metrics = [fold, *test_metrics]
+            test_metrics = [fold_index, *test_metrics]
 
             # Append the metrics to be further exported
             self._metrics_list.append(test_metrics)
 
             self._model.reset()
 
-        metrics_df = pd.DataFrame(self._metrics_list, columns=["fold", "acc", "f1", "prec", "recall", "roc_auc", "inference_time", "model_size"])
+        metrics_df = pd.DataFrame(self._metrics_list, columns=["fold", "acc", "f1", "prec", "recall", "roc_auc", "inference_time"])
         metrics_df.to_csv(f"{self._metrics_output_path}/test_metrics_sklearn_{self._model_name}.csv")
+        confusion_matrix_df = pd.DataFrame(self._confusion_matrix)
+        confusion_matrix_df.to_csv(f"{self._metrics_output_path}/confusion_matrix_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+        roc_metrics_df = pd.DataFrame(self._roc_metrics, columns=["fpr", "tpr", "thresholds"])
+        roc_metrics_df.to_csv(f"{self._metrics_output_path}/roc_metrics_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
