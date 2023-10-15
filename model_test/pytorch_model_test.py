@@ -144,10 +144,10 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
 
         # TODO: alterar para prealocar y_pred e y_true pra exeutar mais rapido
         n_entries = self._batch_size * len(testloader)
-        y_pred = torch.zeros(n_entries).to(device)
-        y_true = torch.zeros(n_entries).to(device)
-        # y_pred = torch.tensor([]).to(device)
-        # y_true = torch.tensor([]).to(device)
+        # y_pred = torch.zeros(n_entries).to(device)
+        # y_true = torch.zeros(n_entries).to(device)
+        y_pred = torch.tensor([]).to(device)
+        y_true = torch.tensor([]).to(device)
         initial_entry = 0
 
         with torch.no_grad():
@@ -160,21 +160,23 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
                 output = self._model(data)
                 output = output.detach()
 
-                for index in range(self._batch_size):
-                    y_pred[initial_entry + index] = output[index].clone()
-                    y_true[initial_entry + index] = target[index].clone()
+                y_pred = torch.cat((y_pred, output))
+                y_true = torch.cat((y_true, target))
 
-                initial_entry = initial_entry + self._batch_size
+                # for index in range(self._batch_size):
+                    # y_pred[initial_entry + index] = output[index].clone()
+                    # y_true[initial_entry + index] = target[index].clone()
+                # initial_entry = initial_entry + self._batch_size
 
-                accuracy_metric.update(output.detach(), target)
-                f1_score_metric.update(output.detach(), target)
+                accuracy_metric.update(output, target)
+                f1_score_metric.update(output, target)
                 # TODO: Find a better way to perform this computation
                 if self._number_of_outputs == 6:
-                    auc_roc_metric.update(output.detach(), torch.argmax(target, dim=1))
+                    auc_roc_metric.update(output, torch.argmax(target, dim=1))
                 else:
-                    auc_roc_metric.update(output.detach(), target)
-                precision_score.update(output.detach(), target)
-                recall_score.update(output.detach(), target)
+                    auc_roc_metric.update(output, target)
+                precision_score.update(output, target)
+                recall_score.update(output, target)
 
             # Calculate metrics
             acc = accuracy_metric.compute().cpu().numpy()
@@ -195,10 +197,16 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             # TODO: encontrar uma forma melhor de fazer esse reshape
             y_true_roc = y_true.to(torch.int32)
             if self._number_of_outputs == 6:
-                y_true_roc = torch.argmax(y_true, dim=1).to(torch.int32)
+                y_true_roc = torch.argmax(y_true_roc, dim=1)
             fpr, tpr, thresholds = roc_metric(y_pred, y_true_roc)
 
-            roc_metrics = torch.cat((fpr.reshape(-1, 1), tpr.reshape(-1, 1), thresholds.reshape(-1, 1)), dim=1)
+            if self._number_of_outputs == 6:
+                self._fpr_multiclass = fpr.T.cpu().numpy()
+                self._tpr_multiclass = tpr.T.cpu().numpy()
+                self._thresholds_multiclass = thresholds.T.cpu().numpy()
+            else:
+                roc_metrics = torch.cat((fpr.reshape(-1, 1), tpr.reshape(-1, 1), thresholds.reshape(-1, 1)), dim=1)
+                self._roc_metrics = roc_metrics.cpu().numpy()
 
             # TODO: Get the data format using the data
             dummy_input = torch.randn(1, 1, 44, 116, dtype=torch.float).to(device)
@@ -214,7 +222,6 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             # Append metrics on list
             self._evaluation_metrics.append([fold, acc, prec, recall, f1, roc_auc, inference_time])
             self._confusion_matrix = confusion_matrix.cpu().numpy()
-            self._roc_metrics = roc_metrics.cpu().numpy()
 
 
     def execute(self, data):
@@ -262,5 +269,15 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
         metrics_df.to_csv(f"{self._metrics_output_path}/test_metrics_{self._labeling_schema}_{self._model_name}_BS{self._batch_size}.csv")
         confusion_matrix_df = pd.DataFrame(self._confusion_matrix)
         confusion_matrix_df.to_csv(f"{self._metrics_output_path}/confusion_matrix_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
-        roc_metrics_df = pd.DataFrame(self._roc_metrics, columns=["fpr", "tpr", "thresholds"])
-        roc_metrics_df.to_csv(f"{self._metrics_output_path}/roc_metrics_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+
+        if self._number_of_outputs == 6:
+            tpr_df = pd.DataFrame(self._tpr_multiclass)
+            fpr_df = pd.DataFrame(self._fpr_multiclass)
+            thresholds_df = pd.DataFrame(self._thresholds_multiclass)
+
+            tpr_df.to_csv(f"{self._metrics_output_path}/tpr_multiclass_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+            fpr_df.to_csv(f"{self._metrics_output_path}/fpr_multiclass_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+            thresholds_df.to_csv(f"{self._metrics_output_path}/thresholds_multiclass_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+        else:
+            roc_metrics_df = pd.DataFrame(self._roc_metrics, columns=["fpr", "tpr", "thresholds"])
+            roc_metrics_df.to_csv(f"{self._metrics_output_path}/roc_metrics_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
