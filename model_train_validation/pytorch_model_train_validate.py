@@ -33,6 +33,7 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
 
         self._model_name = model_config_dict['model_name']
         self._criterion = model_config_dict['criterion']
+        self._model_specs_dict = model_config_dict
 
         hyperparameters_dict = model_config_dict.get('hyperparameters')
         self._learning_rate = hyperparameters_dict['learning_rate']
@@ -65,7 +66,7 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         self._best_val_loss = float("inf")
         self._epochs_without_improvement = 0
 
-        self._number_of_outputs = hyperparameters_dict['num_outputs']
+        self._number_of_outputs = hyperparameters_dict.get('num_outputs', -1)
 
     def __seed_all(self, seed):
         # Reference
@@ -139,7 +140,25 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
             # zero the parameter gradients
             optimizer.zero_grad()
 
-            # forward + backward + optimize
+            # # forward + backward + optimize
+            # # TODO: Later think a way this to be included inside model
+            # if (self._model_name == "MultiStageIDS"):
+            #     # Run stages
+            #     y1 = self._model.forward_first_stage(data)
+            #     y2 = self._model.forward_second_stage(data)
+
+            #     # Move to devices
+            #     y1 = y1.to(device)
+            #     y2 = y2.to(device)
+
+            #     print(f"y1 = {y1}")
+            #     print(f"y1.shape = {y1.shape}")
+            #     print(f"y2 = {y2}")
+            #     print(f"y2.shape = {y2.shape}")
+
+            #     # Combine data
+            #     data = torch.cat((y1, y2), axis=1)
+
             output = self._model(data)
             loss = criterion(output, target)
             loss.backward()
@@ -175,6 +194,18 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
                     target = target.reshape(-1, 1)
                 target = target.float()
 
+                # if (self._model_name == "MultiStageIDS"):
+                #     # Run stages
+                #     y1 = self._model.forward_first_stage(data)
+                #     y2 = self._model.forward_second_stage(data)
+
+                #     # Move to devices
+                #     y1 = y1.to(device)
+                #     y2 = y2.to(device)
+
+                #     # Combine data
+                #     data = torch.cat((y1, y2), axis=1)
+
                 output = self._model(data)
                 val_loss += criterion(output, target).item()  # sum up batch loss
 
@@ -205,6 +236,18 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
                 if len(target.shape) == 1:
                     target = target.reshape(-1, 1)
                 target = target.float()
+
+                # if (self._model_name == "MultiStageIDS"):
+                #     # Run stages
+                #     y1 = self._model.forward_first_stage(data)
+                #     y2 = self._model.forward_second_stage(data)
+
+                #     # Move to devices
+                #     y1 = y1.to(device)
+                #     y2 = y2.to(device)
+
+                #     # Combine data
+                #     data = torch.cat((y1, y2), axis=1)
 
                 output = self._model(data)
 
@@ -298,7 +341,12 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
                         worker_init_fn=self.__seed_worker,
                         collate_fn=collate_gpu)
 
+            # TODO: adicionar o carregamento dos modelos
             self._model.apply(self.__reset_weights)
+            if (self._model_name == "MultiStageIDS"):
+                random_forest_path = self._model_specs_dict["first_stage"]["presaved_paths"][f"{fold}"]
+                pruned_cnn_path = self._model_specs_dict["second_stage"]["presaved_paths"][f"{fold}"]
+                self._model.load_stages_models(random_forest_path, pruned_cnn_path)
 
             for epoch in range(self._num_epochs):
                 train_loss = self.__train_model(criterion, device, trainloader, fold, epoch)
