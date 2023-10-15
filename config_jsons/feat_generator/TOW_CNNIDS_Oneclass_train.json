@@ -7,14 +7,14 @@
         "multiclass": false,
         "labeling_schema": "TOW_IDS_dataset_one_class",
         "dataset": "TOW_IDS_dataset",
-        "suffix": "train",
+        "suffix": "test",
         "sum_x": true
     },
     "paths": {
-        "training_packets_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/Automotive_Ethernet_with_Attack_original_10_17_19_50_training.pcap",
-        "test_packets_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/Automotive_Ethernet_with_Attack_original_10_17_20_04_test.pcap",
-        "y_train_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/y_train.csv",
-        "y_test_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/y_test.csv",
+        "test_packets_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/Automotive_Ethernet_with_Attack_original_10_17_19_50_training.pcap",
+        "training_packets_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/Automotive_Ethernet_with_Attack_original_10_17_20_04_test.pcap",
+        "y_test_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/y_train.csv",
+        "y_train_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/y_test.csv",
         "output_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/processed"
     },
     "load_paths": {

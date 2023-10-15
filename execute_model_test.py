@@ -7,7 +7,8 @@ from models import (
     conv_net_ids,
     multiclass_conv_net_ids,
     pruned_conv_net_ids,
-    sklearn_classifier
+    sklearn_classifier,
+    multi_stage_ids
 )
 from model_test import (
     pytorch_model_test,
@@ -22,7 +23,8 @@ AVAILABLE_IDS = {
     "CNNIDS": conv_net_ids.ConvNetIDS,
     "MultiClassCNNIDS": multiclass_conv_net_ids.MultiClassConvNetIDS,
     "PrunedCNNIDS": pruned_conv_net_ids.PrunedConvNetIDS,
-    "SklearnClassifier": sklearn_classifier.SklearnClassifier
+    "SklearnClassifier": sklearn_classifier.SklearnClassifier,
+    "MultiStageIDS": multi_stage_ids.MultiStageIDS
 }
 
 AVAILABLE_FRAMEWORKS = {
@@ -74,10 +76,15 @@ def main():
     print("> Creating model...")
     if framework == "pytorch":
         num_outputs = model_specs_dict.get('hyperparameters').get('num_outputs', 1)
-        if num_outputs > 1:
-            model = AVAILABLE_IDS[model_name](number_of_outputs=num_outputs)
-        else:
-            model = AVAILABLE_IDS[model_name]()
+        num_ensemble_inputs = model_specs_dict.get('hyperparameters').get('ensemble_inputs', 2)
+        if model_name in ["CNNIDS", "PrunedCNNIDS", "MultiClassCNNIDS"]:
+            if num_outputs > 1:
+                model = AVAILABLE_IDS[model_name](number_of_outputs=num_outputs)
+            else:
+                model = AVAILABLE_IDS[model_name]()
+        elif model_name in ["MultiStageIDS"]:
+            model = AVAILABLE_IDS[model_name](ensemble_inputs=num_ensemble_inputs)
+        print(f">> {model_name} was created with {num_outputs} outputs")
     elif framework == "sklearn":
         model = AVAILABLE_IDS[model_name](model_specs_dict)
 

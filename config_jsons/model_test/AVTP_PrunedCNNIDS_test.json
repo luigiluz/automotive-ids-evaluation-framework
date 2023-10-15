@@ -33,10 +33,10 @@
         }
     },
     "presaved_paths": {
-        "0":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok/models/AVTP_pytorch_model_PrunedCNNIDS_0",
-        "1":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok/models/AVTP_pytorch_model_PrunedCNNIDS_1",
-        "2":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok/models/AVTP_pytorch_model_PrunedCNNIDS_2",
-        "3":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok/models/AVTP_pytorch_model_PrunedCNNIDS_3",
-        "4":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok/models/AVTP_pytorch_model_PrunedCNNIDS_4"
+        "0":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok_AVTP_PCNN_final/models/AVTP_pytorch_model_PrunedCNNIDS_0",
+        "1":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok_AVTP_PCNN_final/models/AVTP_pytorch_model_PrunedCNNIDS_1",
+        "2":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok_AVTP_PCNN_final/models/AVTP_pytorch_model_PrunedCNNIDS_2",
+        "3":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok_AVTP_PCNN_final/models/AVTP_pytorch_model_PrunedCNNIDS_3",
+        "4":"/home/lfml/workspace/artifacts/2023_10_08_15_45_37_pytorch_train_ok_AVTP_PCNN_final/models/AVTP_pytorch_model_PrunedCNNIDS_4"
     }
 }

@@ -28,7 +28,7 @@ class SklearnModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         self._model_name = model_config_dict["model_name"]
         self._metrics_list = []
         self._run_id = f"{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}_sklearn_train_val"
-        self._hyperparameters_grid = model_config_dict["hyperparams_grid"]
+        self._hyperparameters_grid = model_config_dict.get("hyperparams_grid", None)
 
         # TODO: Get this from json config file
         art_path = "/home/lfml/workspace/artifacts"
@@ -142,37 +142,54 @@ class SklearnModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         except:
             pass
 
-        for fold, (train_idx, test_idx) in enumerate(skf.split(X, y)):
-            print('------------fold no---------{}----------------------'.format(fold))
+        fold = None
 
-            # Select the train data
-            X_train = X[train_idx]
-            y_train = y[train_idx]
+        # Train the model
+        self._model.train(X, y)
 
-            # Select the test data
-            X_test = X[test_idx]
-            y_test = y[test_idx]
+        # Get the train metrics
+        train_metrics = self.__validate_model(X, y)
+        train_metrics = ["train", fold, *train_metrics]
 
-            # Train the model
-            self._model.train(X_train, y_train)
+        # Append the metrics to be further exported
+        self._metrics_list.append(train_metrics)
 
-            # Get the train metrics
-            train_metrics = self.__validate_model(X_train, y_train)
-            train_metrics = ["train", fold, *train_metrics]
+        # Export the current fold model
+        model_filename = f"{self._model_name}_entire_dataset_.pkl"
+        with open(f"{self._models_output_path}/{model_filename}", "wb") as file:
+            pickle.dump(self._model, file)
 
-            # Test (validate) the model
-            test_metrics = self.__validate_model(X_test, y_test)
-            test_metrics = ["validation", fold, *test_metrics]
+        # for fold, (train_idx, test_idx) in enumerate(skf.split(X, y)):
+        #     print('------------fold no---------{}----------------------'.format(fold))
 
-            # Append the metrics to be further exported
-            self._metrics_list.append(train_metrics)
-            self._metrics_list.append(test_metrics)
-            # Export the current fold model
-            model_filename = f"{self._model_name}_fold_{fold}.pkl"
-            with open(f"{self._models_output_path}/{model_filename}", "wb") as file:
-                pickle.dump(self._model, file)
+        #     # Select the train data
+        #     X_train = X[train_idx]
+        #     y_train = y[train_idx]
 
-            self._model.reset()
+        #     # Select the test data
+        #     X_test = X[test_idx]
+        #     y_test = y[test_idx]
+
+        #     # Train the model
+        #     self._model.train(X_train, y_train)
+
+        #     # Get the train metrics
+        #     train_metrics = self.__validate_model(X_train, y_train)
+        #     train_metrics = ["train", fold, *train_metrics]
+
+        #     # Test (validate) the model
+        #     test_metrics = self.__validate_model(X_test, y_test)
+        #     test_metrics = ["validation", fold, *test_metrics]
+
+        #     # Append the metrics to be further exported
+        #     self._metrics_list.append(train_metrics)
+        #     self._metrics_list.append(test_metrics)
+        #     # Export the current fold model
+        #     model_filename = f"{self._model_name}_fold_{fold}.pkl"
+        #     with open(f"{self._models_output_path}/{model_filename}", "wb") as file:
+        #         pickle.dump(self._model, file)
+
+        #     self._model.reset()
 
         metrics_df = pd.DataFrame(self._metrics_list, columns=["step", "fold", "acc", "f1", "prec", "recall", "roc_auc", "inference_time"])
         metrics_df.to_csv(f"{self._metrics_output_path}/train_val_metrics_{self._model_name}.csv")

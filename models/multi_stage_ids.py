@@ -22,7 +22,7 @@ class MultiStageIDS(nn.Module):
         )
 
         # TODO: depois remover isso pra nao ficar hardcoded
-        self._device = torch.device("cuda:1")
+        self._device = torch.device("cuda:0")
 
     def load_stages_models(self, rf_path: str, cnn_path: str):
         # Load presaved models
@@ -30,7 +30,7 @@ class MultiStageIDS(nn.Module):
         self._rf_model = pickle.load(open(rf_path, 'rb'))
 
         ## Load second stage model
-        self._pruned_cnn_model = pruned_conv_net_ids.PrunedConvNetIDS()
+        self._pruned_cnn_model = pruned_conv_net_ids.PrunedConvNetIDS(number_of_outputs=6)
         self._pruned_cnn_model.load_state_dict(torch.load(cnn_path, map_location='cpu'))
 
     def forward_first_stage(self, x):
