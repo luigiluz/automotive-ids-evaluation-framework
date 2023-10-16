@@ -143,9 +143,9 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             roc_metric = BinaryROC(thresholds=1000).to(device)
 
         # TODO: alterar para prealocar y_pred e y_true pra exeutar mais rapido
-        n_entries = self._batch_size * len(testloader)
-        # y_pred = torch.zeros(n_entries).to(device)
-        # y_true = torch.zeros(n_entries).to(device)
+        # n_entries = self._batch_size * len(testloader)
+        # y_pred = torch.zeros((n_entries, self._number_of_outputs)).to(device)
+        # y_true = torch.zeros((n_entries, self._number_of_outputs)).to(device)
         y_pred = torch.tensor([]).to(device)
         y_true = torch.tensor([]).to(device)
         initial_entry = 0
@@ -164,8 +164,8 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
                 y_true = torch.cat((y_true, target))
 
                 # for index in range(self._batch_size):
-                    # y_pred[initial_entry + index] = output[index].clone()
-                    # y_true[initial_entry + index] = target[index].clone()
+                #     y_pred[initial_entry + index] = output[index].clone()
+                #     y_true[initial_entry + index] = target[index].clone()
                 # initial_entry = initial_entry + self._batch_size
 
                 accuracy_metric.update(output, target)
