@@ -6,12 +6,12 @@
             "window_slide": 1,
             "number_of_bytes": 58,
             "multiclass": false,
-            "labeling_schema": "TOW_IDS_dataset_one_class",
+            "labeling_schema": "TOW_IDS_dataset_multi_class",
             "dataset": "TOW_IDS_dataset"
         },
         "load_paths": {
-            "X_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/processed_final/1510_X_test_TOW_IDS_dataset_multi_class_Wsize_44_Cols_116_Wslide_1_MC_True.npz",
-            "y_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/processed_final/1510_y_test_TOW_IDS_dataset_one_class_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.csv"
+            "X_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/processed_final/1510_X_train_TOW_IDS_dataset_multi_class_Wsize_44_Cols_116_Wslide_1_MC_False.npz",
+            "y_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/processed_final/1510_y_train_TOW_IDS_dataset_one_class_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.csv"
         }
     },
     "model_specs": {
@@ -25,22 +25,15 @@
             "num_epochs": 5,
             "early_stopping_patience": 3,
             "ensemble_inputs": 7,
-            "num_outputs": 1,
             "num_cnn_outputs": 6
-        },
-        "presaved_paths": {
-            "0": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_18_22_27_58_pytorch_train_ok_TOW_MultiStage/models/pytorch_model_TOW_MultiStageIDS_0",
-            "1": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_18_22_27_58_pytorch_train_ok_TOW_MultiStage/models/pytorch_model_TOW_MultiStageIDS_1",
-            "2": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_18_22_27_58_pytorch_train_ok_TOW_MultiStage/models/pytorch_model_TOW_MultiStageIDS_2",
-            "3": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_18_22_27_58_pytorch_train_ok_TOW_MultiStage/models/pytorch_model_TOW_MultiStageIDS_3",
-            "4": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_18_22_27_58_pytorch_train_ok_TOW_MultiStage/models/pytorch_model_TOW_MultiStageIDS_4"
         },
         "second_stage": {
             "framework": "pytorch",
             "model": "PrunedCNNIDS",
             "model_name": "PrunedCNNIDS",
             "hyperparameters": {
-                "batch_size": 64
+                "batch_size": 64,
+                "num_outputs": 6
             },
             "presaved_paths": {
                 "0":"/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_08_16_52_18_pytorch_train_ok_TOW_PCNN_final/models/TOW_MC_pytorch_model_PrunedCNNIDS_0",

@@ -1,0 +1,42 @@
+{
+    "feat_gen": {
+        "feature_generator": "CNNIDSFeatureGenerator",
+        "config": {
+            "window_size": 44,
+            "window_slide": 1,
+            "number_of_bytes": 58,
+            "multiclass": true,
+            "labeling_schema": "TOW_IDS_dataset_multi_class",
+            "dataset": "TOW_IDS_dataset"
+        },
+        "load_paths": {
+            "X_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/processed_final/1510_X_test_TOW_IDS_dataset_multi_class_Wsize_44_Cols_116_Wslide_1_MC_True.npz",
+            "y_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/processed_final/1510_y_test_TOW_IDS_dataset_multi_class_Wsize_44_Cols_116_Wslide_1_MC_True.csv"
+        }
+    },
+    "model_specs": {
+        "framework": "pytorch",
+        "model": "PrunedCNNIDS",
+        "model_name": "PrunedCNNIDS",
+        "criterion": "categorical-cross-entropy",
+        "hyperparameters": {
+            "batch_size": 64,
+            "learning_rate": 0.001,
+            "num_epochs": 1,
+            "early_stopping_patience": 5,
+            "num_outputs": 6
+        },
+        "paths": {
+            "metrics_output_path":"/home/lfml/workspace/metrics",
+            "models_output_path":"/home/lfml/workspace/models",
+            "forward_output_path":"/home/lfml/workspace/forward"
+        },
+        "presaved_paths": {
+            "0": "/home/lfml/workspace/final_trained_models/validation-models/2023_10_08_16_52_18_pytorch_train_ok_TOW_PCNN_final/models/TOW_MC_pytorch_model_PrunedCNNIDS_0",
+            "1": "/home/lfml/workspace/final_trained_models/validation-models/2023_10_08_16_52_18_pytorch_train_ok_TOW_PCNN_final/models/TOW_MC_pytorch_model_PrunedCNNIDS_1",
+            "2": "/home/lfml/workspace/final_trained_models/validation-models/2023_10_08_16_52_18_pytorch_train_ok_TOW_PCNN_final/models/TOW_MC_pytorch_model_PrunedCNNIDS_2",
+            "3": "/home/lfml/workspace/final_trained_models/validation-models/2023_10_08_16_52_18_pytorch_train_ok_TOW_PCNN_final/models/TOW_MC_pytorch_model_PrunedCNNIDS_3",
+            "4": "/home/lfml/workspace/final_trained_models/validation-models/2023_10_08_16_52_18_pytorch_train_ok_TOW_PCNN_final/models/TOW_MC_pytorch_model_PrunedCNNIDS_4"
+        }
+    }
+}
