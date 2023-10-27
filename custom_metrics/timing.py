@@ -4,7 +4,7 @@ import torch
 import numpy as np
 
 DEFAULT_NUMBER_OF_REPETITIONS = 500
-DEFAULT_GPU_WARMUP_REPETITIONS = 50
+DEFAULT_GPU_WARMUP_REPETITIONS = 100
 
 def pytorch_inference_time_cpu(model, input_data, n_reps = DEFAULT_NUMBER_OF_REPETITIONS):
     """Compute a pytorch model inference time in a cpu device"""
