@@ -11,8 +11,8 @@
             "sum_x": true
         },
         "load_paths": {
-            "X_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/processed_final/1510_X_test_TOW_IDS_dataset_one_class_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.npz",
-            "y_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/processed_final/1510_y_test_TOW_IDS_dataset_one_class_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.csv"
+            "X_path": "/home/lfml/workspace/sample_inputs/sample_input_sum_aggregated.npz",
+            "y_path": "/home/lfml/workspace/sample_inputs/sample_label_one_class_tow.csv"
         }
     },
     "model_specs": {
