@@ -73,7 +73,7 @@ class SklearnModelTest(abstract_model_test.AbstractModelTest):
 
         conf_matrix = confusion_matrix(y_true, y_pred)
 
-        fpr, tpr, thresholds = roc_curve(y_true, y_pred_prob[:, 1])
+        fpr, tpr, thresholds = roc_curve(y_true, y_pred_prob[:, 1], drop_intermediate=True)
 
         self._confusion_matrix = conf_matrix
         self._roc_metrics = np.concatenate((fpr.reshape(-1, 1), tpr.reshape(-1, 1), thresholds.reshape(-1, 1)), axis=1)
@@ -105,9 +105,9 @@ class SklearnModelTest(abstract_model_test.AbstractModelTest):
 
             self._model.reset()
 
-        metrics_df = pd.DataFrame(self._metrics_list, columns=["fold", "acc", "f1", "prec", "recall", "roc_auc", "inference_time"])
-        metrics_df.to_csv(f"{self._metrics_output_path}/test_metrics_sklearn_{self._model_name}.csv")
-        confusion_matrix_df = pd.DataFrame(self._confusion_matrix)
-        confusion_matrix_df.to_csv(f"{self._metrics_output_path}/confusion_matrix_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
-        roc_metrics_df = pd.DataFrame(self._roc_metrics, columns=["fpr", "tpr", "thresholds"])
-        roc_metrics_df.to_csv(f"{self._metrics_output_path}/roc_metrics_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+            metrics_df = pd.DataFrame(self._metrics_list, columns=["fold", "acc", "f1", "prec", "recall", "roc_auc", "inference_time"])
+            metrics_df.to_csv(f"{self._metrics_output_path}/test_metrics_sklearn_{self._model_name}.csv")
+            confusion_matrix_df = pd.DataFrame(self._confusion_matrix)
+            confusion_matrix_df.to_csv(f"{self._metrics_output_path}/confusion_matrix_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+            roc_metrics_df = pd.DataFrame(self._roc_metrics, columns=["fpr", "tpr", "thresholds"])
+            roc_metrics_df.to_csv(f"{self._metrics_output_path}/roc_metrics_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
