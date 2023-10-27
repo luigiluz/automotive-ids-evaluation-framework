@@ -209,12 +209,15 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
                 self._roc_metrics = roc_metrics.cpu().numpy()
 
             # TODO: Get the data format using the data
-            dummy_input = torch.randn(1, 1, 44, 116, dtype=torch.float).to(device)
+            dummy_input = torch.randn(64, 1, 44, 116, dtype=torch.float).to(device)
             if device.type == "cpu":
+                print("detection time in cpu")
                 timing_func = timing.pytorch_inference_time_cpu
             else:
+                print("detection time in gpu")
                 timing_func = timing.pytorch_inference_time_gpu
             inference_time = timing_func(self._model, dummy_input)
+            inference_time = inference_time / len(dummy_input)
 
             # TODO: Change this to be only used in case model is random forest
             # model_size = storage.pytorch_compute_model_size_mb(self._model)
@@ -227,14 +230,14 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
     def execute(self, data):
         def collate_gpu(batch):
             x, t = torch.utils.data.dataloader.default_collate(batch)
-            return x.to(device="cuda:0"), t.to(device="cuda:0")
+            return x.to(device="cpu"), t.to(device="cpu")
         # Reset all seed to ensure reproducibility
         self.__seed_all(0)
         g = torch.Generator()
         g.manual_seed(42)
 
         # Use gpu to train as preference
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
         fold_index = None
 
         # for fold_index in self._presaved_models_state_dict.keys():

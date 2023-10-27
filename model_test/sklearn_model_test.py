@@ -65,8 +65,10 @@ class SklearnModelTest(abstract_model_test.AbstractModelTest):
         recall = recall_score(y_true, y_pred)
         roc_auc = roc_auc_score(y_true, y_pred_prob[:, 1])
 
-        dummy_data = X[0].reshape(1, -1)
+        # dummy_data = X[0].reshape(1, -1)
+        dummy_data = np.random.rand(64, 116)
         inference_time = timing.sklearn_inference_time(self._model, dummy_data)
+        inference_time = inference_time / len(dummy_data)
 
         # TODO: Change this to be only used in case model is random forest
         # model_size = storage.sklearn_random_forest_compute_model_size_mb(self._model._model)
