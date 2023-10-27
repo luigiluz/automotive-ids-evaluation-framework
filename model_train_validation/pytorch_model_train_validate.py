@@ -106,10 +106,9 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
 
         torch.save(self._model.state_dict(), output_filename)
 
-    def __check_early_stopping(self, val_loss, testloader) -> int:
+    def __check_early_stopping(self, val_loss) -> int:
         ret = 0
         # Early stopping update
-        val_loss = val_loss / len(testloader)
         if val_loss < self._best_val_loss:
             self._best_val_loss = val_loss
             self._epochs_without_improvement = 0
@@ -215,7 +214,8 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
                 output = self._model(data)
                 val_loss += criterion(output, target).item()  # sum up batch loss
 
-        ret = self.__check_early_stopping(val_loss, testloader)
+        val_loss = val_loss / len(testloader)
+        ret = self.__check_early_stopping(val_loss)
 
         return ret, val_loss
 
@@ -326,89 +326,55 @@ class PytorchModelTrainValidation(abstract_model_train_validate.AbstractModelTra
         except:
             pass
 
-        fold = None
+        # UNCOMENT THIS PART TO TRAIN USING STRATIFIED KFOLD
+        for fold, (train_idx, test_idx) in enumerate(skf.split(X, y)):
+            print('------------fold no---------{}----------------------'.format(fold))
 
-        trainloader = torch.utils.data.DataLoader(
-                    train_data,
-                    batch_size=self._batch_size,
-                    generator=g,
-                    worker_init_fn=self.__seed_worker,
-                    collate_fn=collate_gpu)
+            train_subsampler = torch.utils.data.SubsetRandomSampler(train_idx)
+            test_subsampler = torch.utils.data.SubsetRandomSampler(test_idx)
 
-        # TODO: adicionar o carregamento dos modelos
-        self._model.apply(self.__reset_weights)
-        if (self._model_name == "MultiStageIDS"):
-            random_forest_path = self._model_specs_dict["first_stage"]["presaved_paths"]["entire"]
-            pruned_cnn_path = self._model_specs_dict["second_stage"]["presaved_paths"]["entire"]
-            self._model.load_stages_models(random_forest_path, pruned_cnn_path)
+            trainloader = torch.utils.data.DataLoader(
+                        train_data,
+                        batch_size=self._batch_size,
+                        sampler=train_subsampler,
+                        generator=g,
+                        worker_init_fn=self.__seed_worker,
+                        collate_fn=collate_gpu)
+            testloader = torch.utils.data.DataLoader(
+                        train_data,
+                        batch_size=self._batch_size,
+                        sampler=test_subsampler,
+                        generator=g,
+                        worker_init_fn=self.__seed_worker,
+                        collate_fn=collate_gpu)
 
-        for epoch in range(self._num_epochs):
-            train_loss = self.__train_model(criterion, device, trainloader, fold, epoch)
-            ret, val_loss = self.__validate_model(criterion, device, trainloader, fold, epoch)
-            if (ret < 0):
-                print(f"Early stopping! Validation loss hasn't improved for {self._early_stopping_patience} epochs")
-                break
+            # TODO: adicionar o carregamento dos modelos
+            self._model.apply(self.__reset_weights)
+            if (self._model_name == "MultiStageIDS"):
+                random_forest_path = self._model_specs_dict["first_stage"]["presaved_paths"][f"{fold}"]
+                pruned_cnn_path = self._model_specs_dict["second_stage"]["presaved_paths"][f"{fold}"]
+                self._model.load_stages_models(random_forest_path, pruned_cnn_path)
 
-            self._train_validation_losses.append([None, epoch, train_loss, val_loss])
+            for epoch in range(self._num_epochs):
+                train_loss = self.__train_model(criterion, device, trainloader, fold, epoch)
+                ret, val_loss = self.__validate_model(criterion, device, testloader, fold, epoch)
+                if (ret < 0):
+                    print(f"Early stopping! Validation loss hasn't improved for {self._early_stopping_patience} epochs")
+                    break
 
-        # Save model
-        self.__save_model_state_dict()
+                self._train_validation_losses.append([fold, epoch, train_loss, val_loss])
 
-        # Export metrics
-        # metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc", "inference_time", "model_size"])
-        # metrics_df.to_csv(f"{self._metrics_output_path}/val_metrics_{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
+            self.__test_model(criterion, device, testloader, fold)
 
-        train_val_loss_df = pd.DataFrame(self._train_validation_losses, columns=["fold", "epoch", "train_loss", "val_loss"])
-        train_val_loss_df.to_csv(f"{self._metrics_output_path}/train_val_losses_{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
+            # Reset early stopping for next fold
+            self.__reset_early_stopping()
 
-        # for fold, (train_idx, test_idx) in enumerate(skf.split(X, y)):
-        #     print('------------fold no---------{}----------------------'.format(fold))
+            # Save model
+            self.__save_model_state_dict(fold)
 
-        #     train_subsampler = torch.utils.data.SubsetRandomSampler(train_idx)
-        #     test_subsampler = torch.utils.data.SubsetRandomSampler(test_idx)
+            # Export metrics
+            metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc", "inference_time", "model_size"])
+            metrics_df.to_csv(f"{self._metrics_output_path}/val_metrics_{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
 
-        #     trainloader = torch.utils.data.DataLoader(
-        #                 train_data,
-        #                 batch_size=self._batch_size,
-        #                 sampler=train_subsampler,
-        #                 generator=g,
-        #                 worker_init_fn=self.__seed_worker,
-        #                 collate_fn=collate_gpu)
-        #     testloader = torch.utils.data.DataLoader(
-        #                 train_data,
-        #                 batch_size=self._batch_size,
-        #                 sampler=test_subsampler,
-        #                 generator=g,
-        #                 worker_init_fn=self.__seed_worker,
-        #                 collate_fn=collate_gpu)
-
-        #     # TODO: adicionar o carregamento dos modelos
-        #     self._model.apply(self.__reset_weights)
-        #     if (self._model_name == "MultiStageIDS"):
-        #         random_forest_path = self._model_specs_dict["first_stage"]["presaved_paths"][f"{fold}"]
-        #         pruned_cnn_path = self._model_specs_dict["second_stage"]["presaved_paths"][f"{fold}"]
-        #         self._model.load_stages_models(random_forest_path, pruned_cnn_path)
-
-        #     for epoch in range(self._num_epochs):
-        #         train_loss = self.__train_model(criterion, device, trainloader, fold, epoch)
-        #         ret, val_loss = self.__validate_model(criterion, device, testloader, fold, epoch)
-        #         if (ret < 0):
-        #             print(f"Early stopping! Validation loss hasn't improved for {self._early_stopping_patience} epochs")
-        #             break
-
-        #         self._train_validation_losses.append([fold, epoch, train_loss, val_loss])
-
-        #     self.__test_model(criterion, device, testloader, fold)
-
-        #     # Reset early stopping for next fold
-        #     self.__reset_early_stopping()
-
-        #     # Save model
-        #     self.__save_model_state_dict(fold)
-
-        #     # Export metrics
-        #     metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc", "inference_time", "model_size"])
-        #     metrics_df.to_csv(f"{self._metrics_output_path}/val_metrics_{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
-
-        #     train_val_loss_df = pd.DataFrame(self._train_validation_losses, columns=["fold", "epoch", "train_loss", "val_loss"])
-        #     train_val_loss_df.to_csv(f"{self._metrics_output_path}/train_val_losses_{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
+            train_val_loss_df = pd.DataFrame(self._train_validation_losses, columns=["fold", "epoch", "train_loss", "val_loss"])
+            train_val_loss_df.to_csv(f"{self._metrics_output_path}/train_val_losses_{self._model_name}_BS{self._batch_size}_EP{self._num_epochs}_LR{self._learning_rate}.csv")
