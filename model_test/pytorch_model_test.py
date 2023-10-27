@@ -249,35 +249,37 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
 
         print(f"len(testloader) = {len(testloader)}")
 
-        self._model.load_state_dict(torch.load(self._presaved_models_state_dict["entire"], map_location='cpu'))
+        for presaved_key in self._presaved_models_state_dict.keys():
+            fold_index = presaved_key
+            self._model.load_state_dict(torch.load(self._presaved_models_state_dict[presaved_key], map_location='cpu'))
 
-        if (self._model_name == "MultiStageIDS"):
-            random_forest_path = self._model_specs_dict["first_stage"]["presaved_paths"]["entire"]
-            pruned_cnn_path = self._model_specs_dict["second_stage"]["presaved_paths"]["entire"]
-            self._model.load_stages_models(random_forest_path, pruned_cnn_path)
+            if (self._model_name == "MultiStageIDS"):
+                random_forest_path = self._model_specs_dict["first_stage"]["presaved_paths"][presaved_key]
+                pruned_cnn_path = self._model_specs_dict["second_stage"]["presaved_paths"][presaved_key]
+                self._model.load_stages_models(random_forest_path, pruned_cnn_path)
 
-        self._model.to(device)
+            self._model.to(device)
 
-        # This is only used in case you want to generate data for random forest models
-        # self.__model_cnn_forward(device, testloader, fold_index)
+            # This is only used in case you want to generate data for random forest models
+            # self.__model_cnn_forward(device, testloader, fold_index)
 
-        # Perform test step
-        self.__test_model(device, testloader, fold_index)
+            # Perform test step
+            self.__test_model(device, testloader, fold_index)
 
-        # Export metrics
-        metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc", "inference_time"])
-        metrics_df.to_csv(f"{self._metrics_output_path}/test_metrics_{self._labeling_schema}_{self._model_name}_BS{self._batch_size}.csv")
-        confusion_matrix_df = pd.DataFrame(self._confusion_matrix)
-        confusion_matrix_df.to_csv(f"{self._metrics_output_path}/confusion_matrix_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+            # Export metrics
+            metrics_df = pd.DataFrame(self._evaluation_metrics, columns=["fold", "acc", "prec", "recall", "f1", "roc_auc", "inference_time"])
+            metrics_df.to_csv(f"{self._metrics_output_path}/test_metrics_{self._labeling_schema}_{self._model_name}_BS{self._batch_size}_fold_{fold_index}.csv")
+            confusion_matrix_df = pd.DataFrame(self._confusion_matrix)
+            confusion_matrix_df.to_csv(f"{self._metrics_output_path}/confusion_matrix_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
 
-        if self._number_of_outputs == 6:
-            tpr_df = pd.DataFrame(self._tpr_multiclass)
-            fpr_df = pd.DataFrame(self._fpr_multiclass)
-            thresholds_df = pd.DataFrame(self._thresholds_multiclass)
+            if self._number_of_outputs == 6:
+                tpr_df = pd.DataFrame(self._tpr_multiclass)
+                fpr_df = pd.DataFrame(self._fpr_multiclass)
+                thresholds_df = pd.DataFrame(self._thresholds_multiclass)
 
-            tpr_df.to_csv(f"{self._metrics_output_path}/tpr_multiclass_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
-            fpr_df.to_csv(f"{self._metrics_output_path}/fpr_multiclass_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
-            thresholds_df.to_csv(f"{self._metrics_output_path}/thresholds_multiclass_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
-        else:
-            roc_metrics_df = pd.DataFrame(self._roc_metrics, columns=["fpr", "tpr", "thresholds"])
-            roc_metrics_df.to_csv(f"{self._metrics_output_path}/roc_metrics_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+                tpr_df.to_csv(f"{self._metrics_output_path}/tpr_multiclass_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+                fpr_df.to_csv(f"{self._metrics_output_path}/fpr_multiclass_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+                thresholds_df.to_csv(f"{self._metrics_output_path}/thresholds_multiclass_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+            else:
+                roc_metrics_df = pd.DataFrame(self._roc_metrics, columns=["fpr", "tpr", "thresholds"])
+                roc_metrics_df.to_csv(f"{self._metrics_output_path}/roc_metrics_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
