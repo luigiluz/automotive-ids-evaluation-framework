@@ -31,7 +31,11 @@
             "models_output_path":"/home/lfml/workspace/models"
         },
         "presaved_paths": {
-            "entire": "/home/lfml/workspace/final_trained_models/tow_dataset/2023_10_15_03_04_22_sklearn_train_val_TOW_RF_entire/models/TOW_RandomForestClassifier_entire_dataset_.pkl"
+            "0": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_14_21_02_55_sklearn_train_val_ok_TOW_RF_final/models/TOW_RandomForestClassifier_fold_0.pkl",
+            "1": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_14_21_02_55_sklearn_train_val_ok_TOW_RF_final/models/TOW_RandomForestClassifier_fold_1.pkl",
+            "2": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_14_21_02_55_sklearn_train_val_ok_TOW_RF_final/models/TOW_RandomForestClassifier_fold_2.pkl",
+            "3": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_14_21_02_55_sklearn_train_val_ok_TOW_RF_final/models/TOW_RandomForestClassifier_fold_3.pkl",
+            "4": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_14_21_02_55_sklearn_train_val_ok_TOW_RF_final/models/TOW_RandomForestClassifier_fold_4.pkl"
         }
     }
 }
