@@ -10,8 +10,8 @@
             "dataset": "TOW_IDS_dataset"
         },
         "load_paths": {
-            "X_path": "/home/lfml/workspace/sample_inputs/sample_input_network_traffic_imaging.npz",
-            "y_path": "/home/lfml/workspace/sample_inputs/sample_label_multiclass_tow.csv"
+            "X_path": "/content/automotive-ids-evaluation-framework/sample_inputs/sample_input_network_traffic_imaging.npz",
+            "y_path": "/content/automotive-ids-evaluation-framework/sample_inputs/sample_label_multiclass_tow.csv"
         }
     },
     "model_specs": {
@@ -27,16 +27,16 @@
             "num_outputs": 6
         },
         "paths": {
-            "metrics_output_path":"/home/lfml/workspace/metrics",
-            "models_output_path":"/home/lfml/workspace/models",
-            "forward_output_path":"/home/lfml/workspace/forward"
+            "metrics_output_path":"/content/metrics",
+            "models_output_path":"/content/models",
+            "forward_output_path":"/content/forward"
         },
         "presaved_paths": {
-            "0": "/home/lfml/workspace/final_trained_models/validation-models/2023_10_08_16_52_18_pytorch_train_ok_TOW_PCNN_final/models/TOW_MC_pytorch_model_PrunedCNNIDS_0",
-            "1": "/home/lfml/workspace/final_trained_models/validation-models/2023_10_08_16_52_18_pytorch_train_ok_TOW_PCNN_final/models/TOW_MC_pytorch_model_PrunedCNNIDS_1",
-            "2": "/home/lfml/workspace/final_trained_models/validation-models/2023_10_08_16_52_18_pytorch_train_ok_TOW_PCNN_final/models/TOW_MC_pytorch_model_PrunedCNNIDS_2",
-            "3": "/home/lfml/workspace/final_trained_models/validation-models/2023_10_08_16_52_18_pytorch_train_ok_TOW_PCNN_final/models/TOW_MC_pytorch_model_PrunedCNNIDS_3",
-            "4": "/home/lfml/workspace/final_trained_models/validation-models/2023_10_08_16_52_18_pytorch_train_ok_TOW_PCNN_final/models/TOW_MC_pytorch_model_PrunedCNNIDS_4"
+            "0": "/content/automotive-ids-evaluation-framework/trained_models/TOW/second_stage/TOW_MC_pytorch_model_PrunedCNNIDS_0",
+            "1": "/content/automotive-ids-evaluation-framework/trained_models/TOW/second_stage/TOW_MC_pytorch_model_PrunedCNNIDS_1",
+            "2": "/content/automotive-ids-evaluation-framework/trained_models/TOW/second_stage/TOW_MC_pytorch_model_PrunedCNNIDS_2",
+            "3": "/content/automotive-ids-evaluation-framework/trained_models/TOW/second_stage/TOW_MC_pytorch_model_PrunedCNNIDS_3",
+            "4": "/content/automotive-ids-evaluation-framework/trained_models/TOW/second_stage/TOW_MC_pytorch_model_PrunedCNNIDS_4"
         }
     }
 }

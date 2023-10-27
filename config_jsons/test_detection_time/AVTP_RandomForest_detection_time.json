@@ -11,8 +11,8 @@
             "sum_x": true
         },
         "load_paths": {
-            "X_path": "/home/lfml/workspace/sample_inputs/sample_input_sum_aggregated.npz",
-            "y_path": "/home/lfml/workspace/sample_inputs/sample_label_one_class_avtp_rounded.npz"
+            "X_path": "/content/automotive-ids-evaluation-framework/sample_inputs/sample_input_sum_aggregated.npz",
+            "y_path": "/content/automotive-ids-evaluation-framework/sample_inputs/sample_label_one_class_avtp_rounded.npz"
         }
     },
     "model_specs": {
@@ -27,15 +27,15 @@
             "random_state": 42
         },
         "paths": {
-            "metrics_output_path":"/home/lfml/workspace/metrics",
-            "models_output_path":"/home/lfml/workspace/models"
+            "metrics_output_path":"/content/metrics",
+            "models_output_path":"/content/models"
         },
         "presaved_paths": {
-            "0": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_12_17_54_49_sklearn_train_ok_100estim_AVTP_RF_final/models/AVTP_RandomForestClassifier_fold_0.pkl",
-            "1": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_12_17_54_49_sklearn_train_ok_100estim_AVTP_RF_final/models/AVTP_RandomForestClassifier_fold_1.pkl",
-            "2": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_12_17_54_49_sklearn_train_ok_100estim_AVTP_RF_final/models/AVTP_RandomForestClassifier_fold_2.pkl",
-            "3": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_12_17_54_49_sklearn_train_ok_100estim_AVTP_RF_final/models/AVTP_RandomForestClassifier_fold_3.pkl",
-            "4": "/home/lfml/workspace/final_trained_models/validation-models/trained_models/2023_10_12_17_54_49_sklearn_train_ok_100estim_AVTP_RF_final/models/AVTP_RandomForestClassifier_fold_4.pkl"
+            "0": "/content/automotive-ids-evaluation-framework/trained_models/AVTP/first_stage/AVTP_RandomForestClassifier_fold_0.pkl",
+            "1": "/content/automotive-ids-evaluation-framework/trained_models/AVTP/first_stage/AVTP_RandomForestClassifier_fold_1.pkl",
+            "2": "/content/automotive-ids-evaluation-framework/trained_models/AVTP/first_stage/AVTP_RandomForestClassifier_fold_2.pkl",
+            "3": "/content/automotive-ids-evaluation-framework/trained_models/AVTP/first_stage/AVTP_RandomForestClassifier_fold_3.pkl",
+            "4": "/content/automotive-ids-evaluation-framework/trained_models/AVTP/first_stage/AVTP_RandomForestClassifier_fold_4.pkl"
         }
     }
 }
