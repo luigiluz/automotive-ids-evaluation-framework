@@ -2,6 +2,7 @@ import gc
 import pandas as pd
 import numpy as np
 import typing
+import time
 from scapy.all import *
 
 from . import abstract_feature_generator
@@ -253,6 +254,23 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
 
         return np.array(nibbles_matrix, dtype='uint8')
 
+    def __split_into_nibbles(self, x1):
+        # Ensure the dtype is large enough to hold the shifted values without overflow
+        x1_np = x1.astype(np.uint8)
+
+        # Prepare a mask to isolate nibbles. 0xF is 1111 in binary, which isolates a nibble.
+        mask = 0xF
+
+        # Extract nibbles.
+        # The idea is to shift the original numbers right by 0 and 4 bits
+        # and then mask off the lower 4 bits.
+        nibbles = np.zeros((x1_np.shape[0], x1_np.shape[1] * 2), dtype=np.uint8)
+
+        for i in range(0, 2):
+            nibbles[:, int(not i)::2] = (x1_np >> (i * 4)) & mask
+
+        return nibbles
+
 
     def __preprocess_raw_packets(self, converted_packets, split_into_nibbles=True):
         # Select first 58 bytes
@@ -263,7 +281,8 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
 
         # Split difference into two nibbles
         if split_into_nibbles:
-            diff_module_packets = self.__create_nibbles_matrix(diff_module_packets)
+            # diff_module_packets = self.__create_nibbles_matrix(diff_module_packets)
+            diff_module_packets = self.__split_into_nibbles(diff_module_packets)
 
         return diff_module_packets
 
@@ -302,3 +321,79 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         # y_array = np.array(y, dtype='uint8')
 
         return x_array, y
+
+    def benchmark_execution_time(self):
+        print(">> Benchmarking feature generator execution time")
+        n_iter = 10000
+        execution_time_list = []
+        # preprocess_time_list = []
+        # agg_time_list = []
+        # select_time_list = []
+        # diff_time_list = []
+        # nibble_time_list = []
+
+        labels=0
+
+        for i in range(n_iter):
+            # Random input in the shape of the data
+            # Regenerate at each iteration to avoid it to be in cache and bias the measurement
+            random_packets = (255*np.random.rand(45, 56)).astype('uint8')
+            # start_time = time.time()
+            start_time = time.perf_counter_ns()
+            # Preprocess packets
+            preprocessed_packets = self.__preprocess_raw_packets(random_packets, split_into_nibbles=True)
+            # Select first 58 bytes
+            # selected_packets = self.__select_packets_bytes(random_packets)
+            # select_bytes_time = time.perf_counter_ns()
+
+            # Calculate difference and module between rows
+            # diff_module_packets = self.__calculate_difference_module(selected_packets)
+            # diff_module_time = time.perf_counter_ns()
+
+            # Split difference into two nibbles
+            # diff_module_packets = self.__split_into_nibbles(diff_module_packets)
+            # preprocess_end = time.perf_counter_ns()
+
+            # Aggregate features and labels
+            aggregated_X, aggregated_y = self.__aggregate_based_on_window_size(preprocessed_packets, labels)
+            # end_time = time.time()
+            end_time = time.perf_counter_ns()
+            elapsed_total_time = end_time - start_time
+            # elapsed_agg_time = end_time - preprocess_end
+            # elapsed_preprocess_time = preprocess_end - start_time
+            # elapsed_select_time = select_bytes_time - start_time
+            # elapsed_diff_time = diff_module_time - select_bytes_time
+            # elapsed_nibble_time = preprocess_end - diff_module_time
+
+            execution_time_list.append(elapsed_total_time)
+            # preprocess_time_list.append(elapsed_preprocess_time)
+            # agg_time_list.append(elapsed_agg_time)
+            # select_time_list.append(elapsed_agg_time)
+            # diff_time_list.append(elapsed_diff_time)
+            # nibble_time_list.append(elapsed_nibble_time)
+
+        # Compute the elapsed time
+        mean_execution_time = np.mean(execution_time_list)
+        std_execution_time = np.std(execution_time_list)
+
+        # mean_preprocess_time = np.mean(preprocess_time_list)
+        # std_preprocess_time = np.std(preprocess_time_list)
+
+        # mean_agg_time = np.mean(agg_time_list)
+        # std_agg_time = np.std(agg_time_list)
+
+        # mean_select_time = np.mean(select_time_list)
+        # std_select_time = np.std(select_time_list)
+
+        # mean_diff_time = np.mean(diff_time_list)
+        # std_diff_time = np.std(diff_time_list)
+
+        # mean_nibble_time = np.mean(nibble_time_list)
+        # std_nibble_time = np.std(nibble_time_list)
+
+        print(f"Mean execution time: {mean_execution_time}, Std: {std_execution_time}")
+        # print(f"Mean preprocess time: {mean_preprocess_time}, Std: {std_preprocess_time}")
+        # print(f"Mean select time: {mean_select_time}, Std: {std_select_time}")
+        # print(f"Mean diff time: {mean_diff_time}, Std: {std_diff_time}")
+        # print(f"Mean nibble time: {mean_nibble_time}, Std: {std_nibble_time}")
+        # print(f"Mean agg time: {mean_agg_time}, Std: {std_agg_time}")
