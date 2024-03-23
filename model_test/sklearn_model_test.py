@@ -88,28 +88,41 @@ class SklearnModelTest(abstract_model_test.AbstractModelTest):
         self.__seed_all(0)
 
         # Get item from train data
-        X_test = [item[0] for item in data]
-        y_test = [item[1] for item in data]
+        X_test_full = [item[0] for item in data]
+        y_test_full = [item[1] for item in data]
 
-        for fold_index in self._presaved_models_paths_dict.keys():
-            print('------------fold no---------{}----------------------'.format(fold_index))
+        unique_y_values = np.unique(y_test_full)
+        # 0 is equal to the normal label, > 0 is equal to attack (in TOW-IDS)
+        existing_labels = unique_y_values[unique_y_values > 0]
 
-            # Load the current fold model
-            model_filename = f"{self._presaved_models_paths_dict[fold_index]}"
-            self._model = pickle.load(open(model_filename, 'rb'))
+        for label in existing_labels:
+            print(f"Current selected label: {label}")
+            normal_and_label_entries_cond = (y_test_full == 0) | (y_test_full == label)
 
-            # Get the train metrics
-            test_metrics = self.__validate_model(X_test, y_test)
-            test_metrics = [fold_index, *test_metrics]
+            y_test = y_test_full[normal_and_label_entries_cond]
+            X_test = X_test_full[normal_and_label_entries_cond]
 
-            # Append the metrics to be further exported
-            self._metrics_list.append(test_metrics)
+            attack_suffix = f"attack_{label}"
 
-            self._model.reset()
+            for fold_index in self._presaved_models_paths_dict.keys():
+                print('------------fold no---------{}----------------------'.format(fold_index))
 
-            metrics_df = pd.DataFrame(self._metrics_list, columns=["fold", "acc", "f1", "prec", "recall", "roc_auc", "inference_time"])
-            metrics_df.to_csv(f"{self._metrics_output_path}/test_metrics_sklearn_{self._model_name}.csv")
-            confusion_matrix_df = pd.DataFrame(self._confusion_matrix)
-            confusion_matrix_df.to_csv(f"{self._metrics_output_path}/confusion_matrix_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
-            roc_metrics_df = pd.DataFrame(self._roc_metrics, columns=["fpr", "tpr", "thresholds"])
-            roc_metrics_df.to_csv(f"{self._metrics_output_path}/roc_metrics_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+                # Load the current fold model
+                model_filename = f"{self._presaved_models_paths_dict[fold_index]}"
+                self._model = pickle.load(open(model_filename, 'rb'))
+
+                # Get the train metrics
+                test_metrics = self.__validate_model(X_test, y_test)
+                test_metrics = [fold_index, *test_metrics]
+
+                # Append the metrics to be further exported
+                self._metrics_list.append(test_metrics)
+
+                self._model.reset()
+
+                metrics_df = pd.DataFrame(self._metrics_list, columns=["fold", "acc", "f1", "prec", "recall", "roc_auc", "inference_time"])
+                metrics_df.to_csv(f"{self._metrics_output_path}/{attack_suffix}_test_metrics_sklearn_{self._model_name}.csv")
+                confusion_matrix_df = pd.DataFrame(self._confusion_matrix)
+                confusion_matrix_df.to_csv(f"{self._metrics_output_path}/{attack_suffix}_confusion_matrix_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
+                roc_metrics_df = pd.DataFrame(self._roc_metrics, columns=["fpr", "tpr", "thresholds"])
+                roc_metrics_df.to_csv(f"{self._metrics_output_path}/{attack_suffix}_roc_metrics_{self._labeling_schema}_fold_{fold_index}_{self._model_name}.csv")
