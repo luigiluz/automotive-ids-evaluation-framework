@@ -194,6 +194,13 @@ test_config.json
 }
 ```
 
+#### Running only for timing measurements
+
+It is important to notice that when you are focusing on only timing measurements to evaluate the detection time, it is not necessary to load the entire dataset, as it would delay the measurements and difficult experimentation.
+
+For this reason, we have provided the "sample_inputs/" folder, that contains smaller samples from the test data that are loaded as fast as possible. To use this files, we have also provided some sample configs that are under "config_jsons/test_detection_time". Please keep in mind that the accuracy related metrics generated with the samples files are not reliable, as the input dataset is only a small subset of all data.
+
+
 <a name="folders"> </a>
 ## Folder structure
 
@@ -211,6 +218,7 @@ This repository is organized in the following folder structure:
         - ...
     ...
 - custom_metrics/
+- sample_inputs/
 - feature_generator/
     - abstract_feature_generator.py
     - cnn_ids_feature_generator.py
