@@ -92,6 +92,8 @@ feat_gen_config.json
 
 The output artifacts will be placed in the specific output path.
 
+**__NOTE:__** It is important to mention that the name of the generated output files may differ from the ones that are under "config_jsons" folder. For this reason, it will be necessary to update your configuration json to match the name of your own output files.
+
 <a name="train-val"> </a>
 ### Executing the model training and validation script
 
