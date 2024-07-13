@@ -256,11 +256,6 @@ class PytorchModelTest(abstract_model_test.AbstractModelTest):
             fold_index = presaved_key
             self._model.load_state_dict(torch.load(self._presaved_models_state_dict[presaved_key], map_location='cpu'))
 
-            if (self._model_name == "MultiStageIDS"):
-                random_forest_path = self._model_specs_dict["first_stage"]["presaved_paths"][presaved_key]
-                pruned_cnn_path = self._model_specs_dict["second_stage"]["presaved_paths"][presaved_key]
-                self._model.load_stages_models(random_forest_path, pruned_cnn_path)
-
             self._model.to(device)
 
             # This is only used in case you want to generate data for random forest models

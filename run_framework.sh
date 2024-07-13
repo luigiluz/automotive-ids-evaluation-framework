@@ -5,7 +5,6 @@ BASE_PATH="/home/lfml/workspace/automotive-ids-evaluation-framework"
 FEAT_GEN_CONFIG_FOLDER="config_jsons/feat_generator"
 MODEL_TRAIN_VALID_CONFIG_FOLDER="config_jsons/model_train_validate"
 MODEL_TEST_CONFIG_FOLDER="config_jsons/model_test"
-MULTI_STAGE_CONFIG_FOLDER="config_jsons/multi_stage_ids"
 DETECTION_TIME_CONFIG_FOLDER="config_jsons/test_detection_time"
 
 # Change this according to the desired configuration
@@ -20,23 +19,15 @@ SELECTED_FEAT_GEN_CONFIG="AVTP_CNNIDS_train.json"
 # SELECTED_MODEL_TRAIN_VALIDATE_CONFIG="TOW_PrunedCNNIDS_Multiclass_train.json"
 # SELECTED_MODEL_TRAIN_VALIDATE_CONFIG="AVTP_RandomForest_train.json"
 # SELECTED_MODEL_TRAIN_VALIDATE_CONFIG="TOW_RandomForest_train.json"
-# SELECTED_MODEL_TRAIN_VALIDATE_CONFIG="AVTP_MultiStage_train_entire.json"
-# SELECTED_MODEL_TRAIN_VALIDATE_CONFIG="TOW_MultiStage_train_folds.json"
 
 ## Model test config
 # SELECTED_MODEL_TEST_CONFIG="AVTP_RandomForest_test.json"
 # SELECTED_MODEL_TEST_CONFIG="AVTP_PrunedCNNIDS_test.json"
-# SELECTED_MODEL_TEST_CONFIG="AVTP_MultiStage_test.json"
 
 # SELECTED_MODEL_TEST_CONFIG="TOW_MC_PrunedCNNIDS_test.json"
 # SELECTED_MODEL_TEST_CONFIG="TOW_RandomForest_test.json"
-# SELECTED_MODEL_TEST_CONFIG="TOW_MultiStage_test.json"
 
 # SELECTED_MODEL_TEST_CONFIG="TOW_MC_PrunedCNNIDS_test_multiple_folds.json"
-
-## Multi stage ids config
-# SELECTED_MULTI_STAGE_IDS_CONFIG="AVTP_MultiStage.json"
-# SELECTED_MULTI_STAGE_IDS_CONFIG="AVTP_MultiStage_test.json"
 
 ## Detection time IDS
 SELECTED_DETECTION_TIME_IDS_CONFIG="AVTP_PrunedCNNIDS_detection_time.json"
@@ -46,7 +37,6 @@ SELECTED_DETECTION_TIME_IDS_CONFIG="AVTP_RandomForest_detection_time.json"
 FEAT_GEN_CONFIG_PATH="${BASE_PATH}/${FEAT_GEN_CONFIG_FOLDER}/${SELECTED_FEAT_GEN_CONFIG}"
 MODEL_TRAIN_VALID_CONFIG_PATH="${BASE_PATH}/${MODEL_TRAIN_VALID_CONFIG_FOLDER}/${SELECTED_MODEL_TRAIN_VALIDATE_CONFIG}"
 MODEL_TEST_CONFIG_PATH="${BASE_PATH}/${MODEL_TEST_CONFIG_FOLDER}/${SELECTED_MODEL_TEST_CONFIG}"
-MULTI_STAGE_CONFIG_PATH="${BASE_PATH}/${MULTI_STAGE_CONFIG_FOLDER}/${SELECTED_MULTI_STAGE_IDS_CONFIG}"
 DETECTION_TIME_CONFIG_PATH="${BASE_PATH}/${DETECTION_TIME_CONFIG_FOLDER}/${SELECTED_DETECTION_TIME_IDS_CONFIG}"
 
 # Run the feature generator step

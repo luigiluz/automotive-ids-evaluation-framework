@@ -7,7 +7,6 @@ from models import (
     multiclass_conv_net_ids,
     pruned_conv_net_ids,
     sklearn_classifier,
-    multi_stage_ids
 )
 from model_train_validation import (
     pytorch_model_train_validate,
@@ -23,7 +22,6 @@ AVAILABLE_IDS = {
     "MultiClassCNNIDS": multiclass_conv_net_ids.MultiClassConvNetIDS,
     "PrunedCNNIDS": pruned_conv_net_ids.PrunedConvNetIDS,
     "SklearnClassifier": sklearn_classifier.SklearnClassifier,
-    "MultiStageIDS": multi_stage_ids.MultiStageIDS
 }
 
 AVAILABLE_FRAMEWORKS = {
@@ -80,9 +78,6 @@ def main():
                 model = AVAILABLE_IDS[model_name](number_of_outputs=num_outputs)
             else:
                 model = AVAILABLE_IDS[model_name]()
-        elif model_name in ["MultiStageIDS"]:
-            num_cnn_outputs = model_specs_dict.get('hyperparameters').get('num_cnn_outputs', 1)
-            model = AVAILABLE_IDS[model_name](ensemble_inputs=num_ensemble_inputs, number_of_outputs=num_cnn_outputs)
         print(f">> {model_name} was created with {num_outputs} outputs")
     elif framework == "sklearn":
         model = AVAILABLE_IDS[model_name](model_specs_dict)
