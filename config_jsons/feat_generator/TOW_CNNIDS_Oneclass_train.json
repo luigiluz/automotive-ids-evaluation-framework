@@ -13,8 +13,8 @@
     "paths": {
         "test_packets_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/Automotive_Ethernet_with_Attack_original_10_17_19_50_training.pcap",
         "training_packets_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/Automotive_Ethernet_with_Attack_original_10_17_20_04_test.pcap",
-        "y_test_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/y_train.csv",
-        "y_train_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/y_test.csv",
+        "y_test_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/y_test.csv",
+        "y_train_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/raw/y_train.csv",
         "output_path": "/home/lfml/workspace/datasets/tow-intrusion-dataset/processed"
     },
     "load_paths": {
