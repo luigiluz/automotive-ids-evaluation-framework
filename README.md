@@ -94,6 +94,92 @@ The output artifacts will be placed in the specific output path.
 
 **__NOTE:__** It is important to mention that the name of the generated output files may differ from the ones that are under "config_jsons" folder. For this reason, it will be necessary to update your configuration json to match the name of your own output files.
 
+#### Feature generator json file parameters
+
+This section intends to describe the parameters available in the "feat_gen_config.json" file:
+
+- feature_generator: This option selects the type of the feature generator. Available options: ["CNNIDSFeatureGenerator"];
+- config: window_size: The number of packets to be aggregated in a window;
+- config: window_slide: The number of samples to move forward to aggregate new packets;
+- config: number_of_bytes: The number of bytes considered for each packet. In case where the packet has less than the specified value, zero padding will be applied;
+- config: multiclass: Selects. Available options: [true, false]
+- config: labeling_schema: This selects how the raw label column will be used to generate. Available options: ["AVTP_Intrusion_dataset", "TOW_IDS_dataset_one_class", "TOW_IDS_dataset_multi_class"]
+- config: dataset: Informs the dataset. Available options: ["AVTP_Intrusion_dataset", "TOW_IDS_dataset"]
+- config: suffix: Determine the suffix that will be inserted in feature generator output file. This is only used for debug and versioning purposes.
+- config: sum_x: Selects if the features will be aggregated along the x axis with a sum operation. Available options: [true, false].
+
+In order to make our results more reproducible, the following subsections specifies the feature generator configs used in our experiments:
+
+##### AVTP dataset
+
+**__NOTE:__** We have omitted the "paths" and "load_paths" file to focus on the feature generator configurations.
+
+For the Random Forest model:
+
+```json
+{
+    "feature_generator": "CNNIDSFeatureGenerator",
+    "config": {
+        "window_size": 44,
+        "window_slide": 1,
+        "number_of_bytes": 58,
+        "multiclass": false,
+        "labeling_schema": "AVTP_Intrusion_dataset",
+        "dataset": "AVTP_Intrusion_dataset",
+        "sum_x": true
+    }
+```
+
+For the Pruned Convolutional Neural Network model:
+
+```json
+{
+    "feature_generator": "CNNIDSFeatureGenerator",
+    "config": {
+        "window_size": 44,
+        "window_slide": 1,
+        "number_of_bytes": 58,
+        "multiclass": false,
+        "labeling_schema": "AVTP_Intrusion_dataset",
+        "dataset": "AVTP_Intrusion_dataset",
+        "sum_x": false
+    }
+```
+
+##### TOW-IDS dataset
+
+For the Random Forest model:
+
+```json
+{
+    "feature_generator": "CNNIDSFeatureGenerator",
+    "config": {
+        "window_size": 44,
+        "window_slide": 1,
+        "number_of_bytes": 58,
+        "multiclass": false,
+        "labeling_schema": "TOW_IDS_dataset_one_class",
+        "dataset": "TOW_IDS_dataset",
+        "sum_x": true
+    }
+```
+
+For the Pruned Convolutional Neural Network model:
+
+```json
+{
+    "feature_generator": "CNNIDSFeatureGenerator",
+    "config": {
+        "window_size": 44,
+        "window_slide": 1,
+        "number_of_bytes": 58,
+        "multiclass": true,
+        "labeling_schema": "TOW_IDS_dataset_multi_class",
+        "dataset": "TOW_IDS_dataset",
+        "sum_x": false
+    }
+```
+
 <a name="train-val"> </a>
 ### Executing the model training and validation script
 
