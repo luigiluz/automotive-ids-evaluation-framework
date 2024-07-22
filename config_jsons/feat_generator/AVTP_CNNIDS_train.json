@@ -8,7 +8,7 @@
         "labeling_schema": "AVTP_Intrusion_dataset",
         "dataset": "AVTP_Intrusion_dataset",
         "suffix": "test",
-        "sum_x": true
+        "sum_x": false
     },
     "paths": {
         "injected_only_frame_path": "/home/lfml/workspace/datasets/avtp-intrusion-dataset/raw/single-MPEG-frame.pcap",
