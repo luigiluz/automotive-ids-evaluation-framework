@@ -12,7 +12,7 @@
     },
     "paths": {
         "injected_only_frame_path": "datasets/avtp-intrusion-dataset/raw/single-MPEG-frame.pcap",
-        "injected_data_paths" : ["datasets/avtp-intrusion-dataset/raw/driving_01_injected.pcap", "datasets/avtp-intrusion-dataset/raw/driving_02_injected.pcap"],
+        "injected_data_paths" : ["datasets/avtp-intrusion-dataset/raw/indoors_01_injected.pcap", "datasets/avtp-intrusion-dataset/raw/indoors_02_injected.pcap"],
         "output_path": "datasets/avtp-intrusion-dataset/processed"
     },
     "load_paths": {

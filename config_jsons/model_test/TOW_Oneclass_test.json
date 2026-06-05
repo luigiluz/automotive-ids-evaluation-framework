@@ -1,0 +1,41 @@
+{
+    "feat_gen": {
+        "feature_generator": "CNNIDSFeatureGenerator",
+        "config": {
+            "window_size": 44,
+            "window_slide": 1,
+            "number_of_bytes": 58,
+            "multiclass": false,
+            "labeling_schema": "TOW_IDS_dataset_one_class",
+            "dataset": "TOW_IDS_dataset",
+            "sum_x": true
+        },
+        "load_paths": {
+            "X_path": "datasets/tow-intrusion-dataset/processed/X_test_TOW_IDS_dataset_one_class_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.npz",
+            "y_path": "datasets/tow-intrusion-dataset/processed/y_test_TOW_IDS_dataset_one_class_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.csv"
+        }
+    },
+   "model_specs": {
+        "framework": "sklearn",
+        "model": "SklearnClassifier",
+        "model_name": "RandomForestClassifier",
+        "model_params": {
+            "n_estimators": 200,
+            "max_depth": 10,
+            "max_features": 7,
+            "bootstrap": true,
+            "random_state": 42
+        },
+        "paths": {
+            "metrics_output_path":"/content/metrics",
+            "models_output_path":"/content/models"
+        },
+        "presaved_paths": {
+            "0": "trained_models/TOW/first_stage/RandomForestClassifier_fold_0_our.pkl",
+            "1": "trained_models/TOW/first_stage/RandomForestClassifier_fold_1_our.pkl",
+            "2": "trained_models/TOW/first_stage/RandomForestClassifier_fold_2_our.pkl",
+            "3": "trained_models/TOW/first_stage/RandomForestClassifier_fold_3_our.pkl",
+            "4": "trained_models/TOW/first_stage/RandomForestClassifier_fold_4_our.pkl"
+        }
+    }
+}

@@ -7,7 +7,7 @@
         "multiclass": false,
         "labeling_schema": "TOW_IDS_dataset_one_class",
         "dataset": "TOW_IDS_dataset",
-        "suffix": "train",
+        "suffix": "test",
         "sum_x": true
     },
     "paths": {
@@ -18,7 +18,7 @@
         "output_path": "datasets/tow-intrusion-dataset/processed"
     },
     "load_paths": {
-        "X_path": "datasets/tow-intrusion-dataset/processed/X_train_TOW_IDS_dataset_one_class_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.npz",
-        "y_path": "datasets/tow-intrusion-dataset/processed/y_train_TOW_IDS_dataset_one_class_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.csv"
+        "X_path": "datasets/tow-intrusion-dataset/processed/X_test_TOW_IDS_dataset_one_class_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.npz",
+        "y_path": "datasets/tow-intrusion-dataset/processed/y_test_TOW_IDS_dataset_one_class_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.csv"
     }
 }

@@ -7,16 +7,16 @@
         "multiclass": false,
         "labeling_schema": "AVTP_Intrusion_dataset",
         "dataset": "AVTP_Intrusion_dataset",
-        "suffix": "train",
-        "sum_x": true
+        "suffix": "test",
+        "sum_x": false
     },
     "paths": {
         "injected_only_frame_path": "datasets/avtp-intrusion-dataset/raw/single-MPEG-frame.pcap",
-        "injected_data_paths" : ["datasets/avtp-intrusion-dataset/raw/indoors_01_injected.pcap", "datasets/avtp-intrusion-dataset/raw/indoors_02_injected.pcap"],
+        "injected_data_paths" : ["datasets/avtp-intrusion-dataset/raw/driving_01_injected.pcap", "datasets/avtp-intrusion-dataset/raw/driving_02_injected.pcap"],
         "output_path": "datasets/avtp-intrusion-dataset/processed"
     },
     "load_paths": {
-        "X_path": "datasets/avtp-intrusion-dataset/processed/X_train_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.npz",
-        "y_path": "datasets/avtp-intrusion-dataset/processed/y_train_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_True.npz"
+        "X_path": "datasets/avtp-intrusion-dataset/processed/X_test_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_False.npz",
+        "y_path": "datasets/avtp-intrusion-dataset/processed/y_test_AVTP_Intrusion_dataset_Wsize_44_Cols_116_Wslide_1_MC_False_sumX_False.npz"
     }
 }

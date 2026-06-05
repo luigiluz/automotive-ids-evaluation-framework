@@ -60,15 +60,24 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         if not os.path.exists(paths_dictionary['output_path']):
             os.makedirs(paths_dictionary['output_path'])
 
-        # Load raw labels
-        labels = pd.read_csv(paths_dictionary["y_train_path"], header=None, names=["index", "Class", "Description"])
-        labels = labels.drop(columns=["index"])
-        converted_packets_list = []
+        if self._data_suffix == "test":
+            pcap_path_key = "test_packets_path"
+            labels_path_key = "y_test_path"
+        else:
+            pcap_path_key = "training_packets_path"
+            labels_path_key = "y_train_path"
 
-        print(">> Loading raw packets using PcapReader (Memory Efficient)...")
-        
-        
-        with PcapReader(paths_dictionary["training_packets_path"]) as packets_stream:
+        print(f">> Processing TOW_IDS dataset for: {self._data_suffix.upper()}")
+
+
+
+        # 2. O código agora usa a variável para abrir o arquivo correto automaticamente
+        labels = pd.read_csv(paths_dictionary[labels_path_key], header=None, names=["index", "Class", "Description"])
+        labels = labels.drop(columns=["index"])
+
+        converted_packets_list = []
+        ...
+        with PcapReader(paths_dictionary[pcap_path_key]) as packets_stream:
             for raw_packet in packets_stream:
                 converted_packet = np.frombuffer(raw(raw_packet), dtype='uint8')
 
@@ -92,7 +101,15 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
         # Aggregate features and labels
         print(">> Aggregating and labeling...")
         aggregated_X, aggregated_y = self.__aggregate_based_on_window_size(preprocessed_packets, labels)
-        
+
+        print(f">> [TOW-IDS | {self._data_suffix.upper()}] Total samples after feature generation: {len(aggregated_X)}")
+        print(f">> [TOW-IDS | {self._data_suffix.upper()}] X shape: {aggregated_X.shape}")
+        print(f">> [TOW-IDS | {self._data_suffix.upper()}] y length: {len(aggregated_y)}")
+
+        unique, counts = np.unique(aggregated_y, return_counts=True)
+        dist = dict(zip(unique, counts))
+        print(f">> [TOW-IDS | {self._data_suffix.upper()}] Class distribution: {dist}")
+
         # Salvando os arquivos gerados
         np.savez(f"{paths_dictionary['output_path']}/X_{self._data_suffix}_{self._output_path_suffix}", aggregated_X)
 
@@ -127,9 +144,18 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
             aggregated_X, aggregated_y = self.__aggregate_based_on_window_size(preprocessed_packets, labels)
             aggregated_y = np.array(aggregated_y, dtype='uint8')
 
+            print(f">> [AEID | {self._data_suffix.upper()}] Samples this file: {len(aggregated_X)}")
+
             # Concatenate both indoors injected packets
             X = np.concatenate((X, aggregated_X), axis=0, dtype='uint8')
             y = np.concatenate((y, aggregated_y), axis=0, dtype='uint8')
+
+            print(f">> [AEID | {self._data_suffix.upper()}] Total samples so far: {len(X)}")
+            print(f">> [AEID | {self._data_suffix.upper()}] X shape so far: {X.shape}")
+
+            ##create output path if doesnt exist
+            if not os.path.exists(paths_dictionary['output_path']):
+                os.makedirs(paths_dictionary['output_path'])
 
             np.savez(f"{paths_dictionary['output_path']}/X_{self._data_suffix}_{self._output_path_suffix}", X)
             np.savez(f"{paths_dictionary['output_path']}/y_{self._data_suffix}_{self._output_path_suffix}", y)
@@ -144,8 +170,11 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
 
         if (self._dataset == "TOW_IDS_dataset"):
             y = pd.read_csv(paths_dictionary['y_path'])
-            y = y.drop(columns=["Unnamed: 0"])
-            if self._dataset == "TOW_IDS_multiclass":
+            if "Unnamed: 0" in y.columns:
+                y = y.drop(columns=["Unnamed: 0"])
+            
+            # CORREÇÃO 1: Agora olha para self._multiclass (corrige o bug do IF que travava o treino/teste)
+            if self._multiclass:
                 y["Class"] = y["Class"].map(
                     {
                         "Normal": 0,
@@ -165,8 +194,16 @@ class CNNIDSFeatureGenerator(abstract_feature_generator.AbstractFeatureGenerator
 
         if (self._multiclass):
             y = y.reshape(-1, 1)
-            ohe = OneHotEncoder(handle_unknown='ignore', sparse_output=False).fit(y)
-            y = ohe.transform(y)
+            
+            # CORREÇÃO 2: Força o OneHotEncoder a mapear SEMPRE as 6 colunas (0 a 5)
+            # Isso impede que a falta de um ataque no PCAP de teste mude o tamanho da matriz
+            if self._dataset == "TOW_IDS_dataset":
+                categories = [np.array([0, 1, 2, 3, 4, 5], dtype=int)]
+                ohe = OneHotEncoder(categories=categories, handle_unknown='ignore', sparse_output=False).fit(y)
+                y = ohe.transform(y)
+            else:
+                ohe = OneHotEncoder(handle_unknown='ignore', sparse_output=False).fit(y)
+                y = ohe.transform(y)
 
         return [[X[i], y[i]] for i in range(X.shape[0])]
 
